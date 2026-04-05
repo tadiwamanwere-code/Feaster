@@ -13,7 +13,7 @@ export default function AdminDashboard() {
       try {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
-          const allOrders = await getOrdersByRestaurant(rest.id)
+          const [allOrders] = await Promise.all([getOrdersByRestaurant(rest.id)])
           setOrders(allOrders)
         } else {
           // Demo data

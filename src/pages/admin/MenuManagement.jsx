@@ -31,7 +31,7 @@ export default function MenuManagement() {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
           setRestaurant(rest)
-          const menuItems = await getMenuItems(rest.id)
+          const [menuItems] = await Promise.all([getMenuItems(rest.id)])
           setItems(menuItems.length > 0 ? menuItems : DEMO_MENU)
         } else {
           setRestaurant({ id: 'demo', slug })

@@ -49,9 +49,12 @@ export default function POSDashboard() {
         setRestaurant(rest || { id: 'demo', slug, name: slug })
 
         if (rest) {
-          const orders = await getOrdersByRestaurant(rest.id)
+          // Fetch orders and tables in parallel — not one after another
+          const [orders, t] = await Promise.all([
+            getOrdersByRestaurant(rest.id),
+            getTables(rest.id),
+          ])
           setAllOrders(orders)
-          const t = await getTables(rest.id)
           t.sort((a, b) => {
             const na = parseInt(a.table_number, 10)
             const nb = parseInt(b.table_number, 10)

@@ -3,6 +3,7 @@ let _app = null
 let _db = null
 let _auth = null
 let _storage = null
+let _warming = false
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-key',
@@ -46,4 +47,27 @@ export async function getAuthInstance() {
     _auth = getAuth(app)
   }
   return _auth
+}
+
+// Pre-warm Firebase + Firestore on first user interaction
+// This runs in the background so by the time the user navigates,
+// Firebase is already initialized and the first query is faster
+export function warmUp() {
+  if (_warming || _db) return
+  _warming = true
+  // Don't await — fire and forget in the background
+  getDb().catch(() => {})
+}
+
+// Start warming on first interaction (click, touch, scroll)
+if (typeof window !== 'undefined') {
+  const trigger = () => {
+    warmUp()
+    window.removeEventListener('click', trigger)
+    window.removeEventListener('touchstart', trigger)
+    window.removeEventListener('scroll', trigger)
+  }
+  window.addEventListener('click', trigger, { once: true, passive: true })
+  window.addEventListener('touchstart', trigger, { once: true, passive: true })
+  window.addEventListener('scroll', trigger, { once: true, passive: true })
 }

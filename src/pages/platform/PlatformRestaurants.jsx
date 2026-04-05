@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, ExternalLink, ChefHat, MapPin, Eye, EyeOff, QrCode } from 'lucide-react'
+import { Plus, Pencil, Trash2, ExternalLink, ChefHat, MapPin, Eye, EyeOff, QrCode, Building2 } from 'lucide-react'
 import { getRestaurants, updateRestaurant, deleteRestaurant } from '../../lib/services'
 import QRCodesModal from '../../components/QRCodesModal'
 

@@ -1,43 +1,83 @@
-import { getDb, getStorageInstance } from './firebase'
+import { getDb, getStorageInstance, warmUp } from './firebase'
 
-// Lazy-load Firestore functions only when needed
+// ─── Firebase module cache ────────────────────────────────────
 let _firestore = null
 async function fs() {
   if (!_firestore) _firestore = await import('firebase/firestore')
   return _firestore
 }
 
+// ─── Data cache ───────────────────────────────────────────────
+// In-memory cache with TTL — avoids redundant Firestore reads
+const _cache = new Map()
+const CACHE_TTL = 30_000 // 30 seconds
+
+function cacheGet(key) {
+  const entry = _cache.get(key)
+  if (!entry) return undefined
+  if (Date.now() - entry.ts > CACHE_TTL) { _cache.delete(key); return undefined }
+  return entry.data
+}
+
+function cacheSet(key, data) {
+  _cache.set(key, { data, ts: Date.now() })
+}
+
+// Invalidate cache entries that start with a prefix
+export function invalidateCache(prefix) {
+  for (const key of _cache.keys()) {
+    if (key.startsWith(prefix)) _cache.delete(key)
+  }
+}
+
 // ─── Restaurants ───────────────────────────────────────────────
 
 export async function getRestaurants({ activeOnly = true } = {}) {
+  const cacheKey = `restaurants:${activeOnly}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
   const { collection, query, where, getDocs } = await fs()
   const db = await getDb()
   const q = activeOnly
     ? query(collection(db, 'restaurants'), where('is_active', '==', true))
     : query(collection(db, 'restaurants'))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const result = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  cacheSet(cacheKey, result)
+  return result
 }
 
 export async function getRestaurantBySlug(slug) {
+  const cacheKey = `restaurant:${slug}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
   const { collection, query, where, getDocs } = await fs()
   const db = await getDb()
   const q = query(collection(db, 'restaurants'), where('slug', '==', slug))
   const snap = await getDocs(q)
   if (snap.empty) return null
   const d = snap.docs[0]
-  return { id: d.id, ...d.data() }
+  const result = { id: d.id, ...d.data() }
+  cacheSet(cacheKey, result)
+  return result
 }
 
 export async function updateRestaurant(id, data) {
   const { doc, updateDoc } = await fs()
   const db = await getDb()
   await updateDoc(doc(db, 'restaurants', id), data)
+  invalidateCache('restaurant')
 }
 
 // ─── Menu Items ────────────────────────────────────────────────
 
 export async function getMenuItems(restaurantId) {
+  const cacheKey = `menu:${restaurantId}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
   const { collection, query, where, orderBy, getDocs } = await fs()
   const db = await getDb()
   const q = query(
@@ -46,12 +86,15 @@ export async function getMenuItems(restaurantId) {
     orderBy('sort_order')
   )
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const result = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  cacheSet(cacheKey, result)
+  return result
 }
 
 export async function addMenuItem(data) {
   const { collection, addDoc, serverTimestamp } = await fs()
   const db = await getDb()
+  invalidateCache('menu')
   return addDoc(collection(db, 'menu_items'), {
     ...data,
     is_available: true,
@@ -64,27 +107,36 @@ export async function updateMenuItem(id, data) {
   const { doc, updateDoc } = await fs()
   const db = await getDb()
   await updateDoc(doc(db, 'menu_items', id), data)
+  invalidateCache('menu')
 }
 
 export async function deleteMenuItem(id) {
   const { doc, deleteDoc } = await fs()
   const db = await getDb()
   await deleteDoc(doc(db, 'menu_items', id))
+  invalidateCache('menu')
 }
 
 // ─── Tables ────────────────────────────────────────────────────
 
 export async function getTables(restaurantId) {
+  const cacheKey = `tables:${restaurantId}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
   const { collection, query, where, getDocs } = await fs()
   const db = await getDb()
   const q = query(collection(db, 'tables'), where('restaurant_id', '==', restaurantId))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const result = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  cacheSet(cacheKey, result)
+  return result
 }
 
 export async function addTable(data) {
   const { collection, addDoc } = await fs()
   const db = await getDb()
+  invalidateCache('tables')
   return addDoc(collection(db, 'tables'), { ...data, is_active: true })
 }
 
@@ -92,13 +144,13 @@ export async function deleteTable(id) {
   const { doc, deleteDoc } = await fs()
   const db = await getDb()
   await deleteDoc(doc(db, 'tables', id))
+  invalidateCache('tables')
 }
 
 export async function setupTables(restaurantId, tableCount) {
   const existing = await getTables(restaurantId)
   const existingNumbers = new Set(existing.map(t => t.table_number))
 
-  // Add missing tables
   const promises = []
   for (let i = 1; i <= tableCount; i++) {
     const num = String(i)
@@ -107,7 +159,6 @@ export async function setupTables(restaurantId, tableCount) {
     }
   }
 
-  // Remove tables with numbers above the count (only numbered ones)
   for (const table of existing) {
     const n = parseInt(table.table_number, 10)
     if (!isNaN(n) && n > tableCount) {
@@ -116,6 +167,7 @@ export async function setupTables(restaurantId, tableCount) {
   }
 
   await Promise.all(promises)
+  invalidateCache('tables')
 }
 
 // ─── Orders ────────────────────────────────────────────────────
@@ -195,11 +247,17 @@ export async function getTimestamp() {
 // ─── Platform Admin (restaurant CRUD) ──────────────────────────
 
 export async function getRestaurantById(id) {
+  const cacheKey = `restaurantById:${id}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
   const { doc, getDoc } = await fs()
   const db = await getDb()
   const snap = await getDoc(doc(db, 'restaurants', id))
   if (!snap.exists()) return null
-  return { id: snap.id, ...snap.data() }
+  const result = { id: snap.id, ...snap.data() }
+  cacheSet(cacheKey, result)
+  return result
 }
 
 export async function isSlugAvailable(slug, excludeId = null) {
@@ -208,7 +266,6 @@ export async function isSlugAvailable(slug, excludeId = null) {
   const q = query(collection(db, 'restaurants'), where('slug', '==', slug))
   const snap = await getDocs(q)
   if (snap.empty) return true
-  // If editing, the existing doc with same slug is OK
   if (excludeId && snap.docs.length === 1 && snap.docs[0].id === excludeId) return true
   return false
 }
@@ -216,6 +273,7 @@ export async function isSlugAvailable(slug, excludeId = null) {
 export async function addRestaurant(data) {
   const { collection, addDoc, serverTimestamp } = await fs()
   const db = await getDb()
+  invalidateCache('restaurant')
   return addDoc(collection(db, 'restaurants'), {
     ...data,
     is_active: true,
@@ -227,14 +285,50 @@ export async function deleteRestaurant(id) {
   const { doc, deleteDoc } = await fs()
   const db = await getDb()
   await deleteDoc(doc(db, 'restaurants', id))
+  invalidateCache('restaurant')
 }
 
 // ─── Image Uploads ─────────────────────────────────────────────
 
+// Compress image before upload — resizes and reduces quality
+function compressImage(file, maxWidth = 1200, quality = 0.8) {
+  return new Promise((resolve) => {
+    // If file is already small (<200KB) or not an image, skip compression
+    if (file.size < 200_000 || !file.type.startsWith('image/')) {
+      return resolve(file)
+    }
+
+    const img = new Image()
+    const canvas = document.createElement('canvas')
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+          'image/jpeg',
+          quality
+        )
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 export async function uploadImage(path, file) {
+  const compressed = await compressImage(file)
   const storage = await getStorageInstance()
   const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
   const storageRef = ref(storage, path)
-  await uploadBytes(storageRef, file)
+  await uploadBytes(storageRef, compressed)
   return getDownloadURL(storageRef)
 }

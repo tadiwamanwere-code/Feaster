@@ -32,7 +32,7 @@ export default function TableManagement() {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
           setRestaurant(rest)
-          const t = await getTables(rest.id)
+          const [t] = await Promise.all([getTables(rest.id)])
           setTables(t.length > 0 ? t : DEMO_TABLES)
         } else {
           setRestaurant({ id: 'demo', slug, name: slug.charAt(0).toUpperCase() + slug.slice(1) })

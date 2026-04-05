@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Clock, MapPin, ShoppingBag, ArrowLeft } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../lib/services'
@@ -34,6 +34,7 @@ export default function RestaurantPage() {
         if (rest) {
           setRestaurant(rest)
           dispatch({ type: 'SET_RESTAURANT', restaurantId: rest.id, slug: rest.slug })
+          // Fetch menu in parallel — don't wait for restaurant state to settle
           const items = await getMenuItems(rest.id)
           setMenuItems(items.length > 0 ? items : DEMO_MENU)
         } else {
@@ -71,7 +72,7 @@ export default function RestaurantPage() {
     }
   }, [tableNumber, dispatch])
 
-  const categories = [...new Set(menuItems.map(i => i.category))]
+  const categories = useMemo(() => [...new Set(menuItems.map(i => i.category))], [menuItems])
 
   useEffect(() => {
     if (categories.length > 0 && !activeCategory) {

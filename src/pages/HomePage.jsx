@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, MapPin, Clock, Star } from 'lucide-react'
 import { getRestaurants } from '../lib/services'
@@ -83,14 +83,14 @@ export default function HomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered = restaurants.filter(r => {
+  const filtered = useMemo(() => restaurants.filter(r => {
     const matchesCity = city === 'All' || r.city === city
     const matchesSearch =
       !search ||
       r.name.toLowerCase().includes(search.toLowerCase()) ||
       r.cuisine_type?.toLowerCase().includes(search.toLowerCase())
     return matchesCity && matchesSearch
-  })
+  }), [restaurants, city, search])
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -162,6 +162,7 @@ export default function HomePage() {
                   <img
                     src={restaurant.cover_photo_url}
                     alt={restaurant.name}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
