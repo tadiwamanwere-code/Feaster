@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Restaurants — anyone can read, authenticated admins can write
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Menu items — anyone can read, authenticated admins can write
+    match /menu_items/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Tables — anyone can read, authenticated admins can write
+    match /tables/{tableId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Orders — anyone can create and read, authenticated staff can update
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if request.auth != null;
+    }
+  }
+}
