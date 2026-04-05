@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { getAuthInstance } from '../lib/firebase'
 
 const AuthContext = createContext()
@@ -6,24 +6,38 @@ const AuthContext = createContext()
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const initStarted = useRef(false)
 
   useEffect(() => {
     let unsubscribe = () => {}
-    // Lazy-load Firebase Auth — don't block initial render
-    ;(async () => {
-      try {
-        const auth = await getAuthInstance()
-        const { onAuthStateChanged } = await import('firebase/auth')
-        unsubscribe = onAuthStateChanged(auth, (u) => {
-          setUser(u)
+
+    // Defer Firebase Auth init — don't load on landing page or block first paint
+    const timer = requestIdleCallback?.(() => startAuth()) ?? setTimeout(() => startAuth(), 50)
+
+    function startAuth() {
+      if (initStarted.current) return
+      initStarted.current = true
+      ;(async () => {
+        try {
+          const auth = await getAuthInstance()
+          const { onAuthStateChanged } = await import('firebase/auth')
+          unsubscribe = onAuthStateChanged(auth, (u) => {
+            setUser(u)
+            setLoading(false)
+          })
+        } catch {
+          // Firebase not configured — demo mode
           setLoading(false)
-        })
-      } catch {
-        // Firebase not configured — demo mode
-        setLoading(false)
+        }
+      })()
+    }
+
+    return () => {
+      if (typeof timer === 'number') {
+        cancelIdleCallback?.(timer) ?? clearTimeout(timer)
       }
-    })()
-    return () => unsubscribe()
+      unsubscribe()
+    }
   }, [])
 
   const login = async (email, password) => {
