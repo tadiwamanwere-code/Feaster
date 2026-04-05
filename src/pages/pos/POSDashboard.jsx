@@ -3,10 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingBag, Clock, DollarSign, Users, ChefHat,
   Bell, Check, Package, LogOut, Printer, Hash, CreditCard, Banknote,
-  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter, QrCode, Download, Store, UtensilsCrossed
+  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter, QrCode, Download, Store, UtensilsCrossed,
+  BookOpen, Plus, Pencil, Trash2, X as XIcon, Eye, EyeOff, Upload, Image, Link2, Loader
 } from 'lucide-react'
 import QRCodeLib from 'qrcode'
-import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables } from '../../lib/services'
+import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem } from '../../lib/services'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
 import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
@@ -33,6 +34,7 @@ export default function POSDashboard() {
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showQR, setShowQR] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   const [qrTab, setQrTab] = useState('restaurant')
   const [tables, setTables] = useState([])
   const [qrCodes, setQrCodes] = useState({})
@@ -189,7 +191,16 @@ export default function POSDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowQR(!showQR)}
+            onClick={() => { setShowMenu(!showMenu); if (!showMenu) setShowQR(false) }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              showMenu ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Menu</span>
+          </button>
+          <button
+            onClick={() => { setShowQR(!showQR); if (!showQR) setShowMenu(false) }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               showQR ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
             }`}
@@ -232,6 +243,11 @@ export default function POSDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* Menu Panel */}
+        {showMenu && (
+          <POSMenuPanel restaurant={restaurant} />
+        )}
+
         {/* QR Codes Panel */}
         {showQR && (
           <div className="flex-1 overflow-y-auto p-6">
@@ -377,7 +393,7 @@ export default function POSDashboard() {
         )}
 
         {/* Orders List (left panel) */}
-        {!showQR && <>
+        {!showQR && !showMenu && <>
         <div className="w-full lg:w-[420px] xl:w-[480px] border-r border-gray-800 flex flex-col shrink-0">
           {/* Filter bar */}
           <div className="px-4 py-3 border-b border-gray-800 space-y-2">
@@ -602,6 +618,200 @@ function OrderDetail({ order, onStatusUpdate }) {
           >
             {config.action}
           </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── POS Menu Panel ───────────────────────────────────────────
+function POSMenuPanel({ restaurant }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editItem, setEditItem] = useState(null)
+  const [form, setForm] = useState({ name: '', description: '', price: '', category: '', image_url: '' })
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const imageRef = useRef()
+
+  useEffect(() => {
+    if (!restaurant?.id || restaurant.id === 'demo') {
+      setItems([
+        { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato', price: 8.50, category: 'Mains', is_available: true },
+        { id: 'm2', name: 'Chicken Wings (6pc)', description: 'Crispy fried wings', price: 6.00, category: 'Starters', is_available: true },
+      ])
+      setLoading(false)
+      return
+    }
+    getMenuItems(restaurant.id)
+      .then(data => setItems(data))
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false))
+  }, [restaurant])
+
+  const categories = [...new Set(items.map(i => i.category))]
+
+  const handleImageUpload = (file) => {
+    if (!file) return
+    setUploading(true)
+    const reader = new FileReader()
+    reader.onload = (e) => { setForm(f => ({ ...f, image_url: e.target.result })); setUploading(false) }
+    reader.onerror = () => setUploading(false)
+    reader.readAsDataURL(file)
+  }
+
+  const handleSave = async () => {
+    if (!form.name || !form.price || !form.category) return
+    setSaving(true)
+    const data = { name: form.name, description: form.description, price: parseFloat(form.price), category: form.category, image_url: form.image_url || null, restaurant_id: restaurant.id }
+
+    try {
+      if (editItem === 'new') {
+        if (restaurant.id === 'demo') {
+          setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true }])
+        } else {
+          const docRef = await addMenuItem(data)
+          setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true }])
+        }
+      } else {
+        if (!editItem.id.startsWith('m') && !editItem.id.startsWith('new')) await updateMenuItem(editItem.id, data)
+        setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
+      }
+    } catch {
+      if (editItem === 'new') setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true }])
+      else setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
+    }
+    setEditItem(null)
+    setSaving(false)
+  }
+
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this menu item?')) return
+    try { if (!id.startsWith('m') && !id.startsWith('new')) await deleteMenuItem(id) } catch {}
+    setItems(prev => prev.filter(i => i.id !== id))
+  }
+
+  const toggleAvail = async (item) => {
+    const v = !item.is_available
+    try { if (!item.id.startsWith('m') && !item.id.startsWith('new')) await updateMenuItem(item.id, { is_available: v }) } catch {}
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_available: v } : i))
+  }
+
+  if (loading) return <div className="flex-1 flex items-center justify-center"><Loader className="w-8 h-8 text-orange-400 animate-spin" /></div>
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-bold">Menu Management</h2>
+          <p className="text-sm text-gray-500">{items.length} items across {categories.length} categories</p>
+        </div>
+        <button
+          onClick={() => { setEditItem('new'); setForm({ name: '', description: '', price: '', category: '', image_url: '' }) }}
+          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-orange-700"
+        >
+          <Plus className="w-4 h-4" />
+          Add Item
+        </button>
+      </div>
+
+      {items.length === 0 && (
+        <div className="text-center py-16">
+          <Image className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+          <p className="text-gray-400 font-medium">No menu items yet</p>
+          <p className="text-sm text-gray-600 mt-1">Add your first item with name, price, and photo</p>
+        </div>
+      )}
+
+      {categories.map(cat => (
+        <div key={cat} className="mb-6">
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{cat}</h3>
+          <div className="space-y-2">
+            {items.filter(i => i.category === cat).map(item => (
+              <div key={item.id} className={`flex items-center gap-3 bg-gray-800/50 px-4 py-3 rounded-xl border border-gray-700 ${!item.is_available ? 'opacity-40' : ''}`}>
+                {item.image_url ? (
+                  <img src={item.image_url} alt="" className="w-11 h-11 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-11 h-11 rounded-lg bg-gray-700 shrink-0 flex items-center justify-center">
+                    <Image className="w-5 h-5 text-gray-500" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{item.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                </div>
+                <span className="text-sm font-bold text-orange-400 shrink-0">${item.price.toFixed(2)}</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => toggleAvail(item)} className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-500">
+                    {item.is_available ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => { setEditItem(item); setForm({ name: item.name, description: item.description || '', price: item.price.toString(), category: item.category, image_url: item.image_url || '' }) }} className="p-1.5 hover:bg-gray-700 rounded-lg text-gray-500">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-900/30 rounded-lg text-gray-500 hover:text-red-400">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Add/Edit Modal */}
+      {editItem !== null && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setEditItem(null)}>
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+              <h3 className="font-semibold">{editItem === 'new' ? 'Add Menu Item' : 'Edit Menu Item'}</h3>
+              <button onClick={() => setEditItem(null)} className="p-1 hover:bg-gray-700 rounded"><XIcon className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Image */}
+              <div>
+                <label className="text-sm font-medium text-gray-400 mb-2 block">Item Photo</label>
+                {form.image_url ? (
+                  <div className="relative">
+                    <img src={form.image_url} alt="" className="w-full h-36 rounded-xl object-cover" />
+                    <button onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center"><XIcon className="w-4 h-4" /></button>
+                  </div>
+                ) : (
+                  <div onClick={() => imageRef.current?.click()} className="w-full h-28 rounded-xl border-2 border-dashed border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
+                    {uploading ? <Loader className="w-6 h-6 text-gray-500 animate-spin" /> : <><Upload className="w-6 h-6 text-gray-500 mb-1" /><span className="text-sm text-gray-500">Upload photo</span></>}
+                  </div>
+                )}
+                <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e.target.files[0])} />
+                {!form.image_url && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Link2 className="w-4 h-4 text-gray-500 shrink-0" />
+                    <input type="url" value={form.image_url || ''} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-orange-500" placeholder="Or paste image URL..." />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-400 mb-1 block">Name *</label>
+                <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Grilled Chicken" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-400 mb-1 block">Description</label>
+                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className="w-full px-3 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none" placeholder="Short description..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-400 mb-1 block">Price (USD) *</label>
+                  <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} className="w-full px-3 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="0.00" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-400 mb-1 block">Category *</label>
+                  <input type="text" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g. Mains" />
+                </div>
+              </div>
+            </div>
+            <div className="px-5 py-4 border-t border-gray-700 flex gap-3">
+              <button onClick={() => setEditItem(null)} className="flex-1 px-4 py-2.5 border border-gray-600 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800">Cancel</button>
+              <button onClick={handleSave} disabled={saving || !form.name || !form.price || !form.category} className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

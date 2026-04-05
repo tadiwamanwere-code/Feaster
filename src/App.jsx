@@ -44,16 +44,7 @@ export default function App() {
               {/* Landing page */}
               <Route path="/" element={<LandingPage />} />
 
-              {/* Customer routes */}
-              <Route element={<Layout />}>
-                <Route path="/explore" element={<HomePage />} />
-                <Route path="/:slug" element={<RestaurantPage />} />
-                <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
-                <Route path="/:slug/checkout" element={<CheckoutPage />} />
-                <Route path="/order/:orderId" element={<OrderConfirmationPage />} />
-              </Route>
-
-              {/* POS System (cashier/restaurant tablet) */}
+              {/* POS System (cashier/restaurant tablet) — BEFORE /:slug */}
               <Route path="/system/login" element={<SystemLogin />} />
               <Route path="/pos/:slug" element={<POSDashboard />} />
 
@@ -76,6 +67,19 @@ export default function App() {
                 <Route index element={<PlatformRestaurants />} />
                 <Route path="add" element={<RestaurantForm />} />
                 <Route path="edit/:id" element={<RestaurantForm />} />
+              </Route>
+
+              {/* Customer routes — /:slug MUST be last since it catches everything */}
+              <Route path="/explore" element={<Layout />}>
+                <Route index element={<HomePage />} />
+              </Route>
+              <Route path="/order/:orderId" element={<Layout />}>
+                <Route index element={<OrderConfirmationPage />} />
+              </Route>
+              <Route element={<Layout />}>
+                <Route path="/:slug" element={<RestaurantPage />} />
+                <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
+                <Route path="/:slug/checkout" element={<CheckoutPage />} />
               </Route>
             </Routes>
           </Suspense>

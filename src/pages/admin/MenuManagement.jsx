@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff, Image, Link2, Loader, Upload } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem } from '../../lib/services'
 
 const DEMO_MENU = [
@@ -22,6 +22,8 @@ export default function MenuManagement() {
   const [editItem, setEditItem] = useState(null) // null = closed, 'new' = adding, item object = editing
   const [form, setForm] = useState(EMPTY_ITEM)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const imageInputRef = useRef()
 
   useEffect(() => {
     async function load() {
@@ -62,6 +64,18 @@ export default function MenuManagement() {
     })
   }
 
+  const handleImageUpload = (file) => {
+    if (!file) return
+    setUploading(true)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setForm(f => ({ ...f, image_url: e.target.result }))
+      setUploading(false)
+    }
+    reader.onerror = () => setUploading(false)
+    reader.readAsDataURL(file)
+  }
+
   const handleSave = async () => {
     if (!form.name || !form.price || !form.category) return
     setSaving(true)
@@ -77,7 +91,6 @@ export default function MenuManagement() {
 
     try {
       if (editItem === 'new') {
-        // Demo mode: add locally
         if (restaurant.id === 'demo') {
           setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true, sort_order: prev.length }])
         } else {
@@ -85,7 +98,6 @@ export default function MenuManagement() {
           setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true, sort_order: prev.length }])
         }
       } else {
-        // Edit existing
         if (!editItem.id.startsWith('demo') && !editItem.id.startsWith('m') && !editItem.id.startsWith('new')) {
           await updateMenuItem(editItem.id, data)
         }
@@ -93,7 +105,6 @@ export default function MenuManagement() {
       }
     } catch (err) {
       console.error('Save failed:', err)
-      // Still update locally for demo
       if (editItem === 'new') {
         setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true, sort_order: prev.length }])
       } else {
@@ -146,6 +157,21 @@ export default function MenuManagement() {
         </button>
       </div>
 
+      {items.length === 0 && (
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
+          <Image className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 font-medium">No menu items yet</p>
+          <p className="text-sm text-gray-400 mt-1">Add your first item with a name, price, and photo</p>
+          <button
+            onClick={openAdd}
+            className="mt-4 inline-flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-orange-700"
+          >
+            <Plus className="w-4 h-4" />
+            Add First Item
+          </button>
+        </div>
+      )}
+
       {/* Menu by category */}
       {categories.map(cat => (
         <div key={cat}>
@@ -162,7 +188,9 @@ export default function MenuManagement() {
                 {item.image_url ? (
                   <img src={item.image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-gray-100 shrink-0" />
+                  <div className="w-12 h-12 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center">
+                    <Image className="w-5 h-5 text-gray-300" />
+                  </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm">{item.name}</p>
@@ -198,8 +226,8 @@ export default function MenuManagement() {
 
       {/* Add/Edit Modal */}
       {editItem !== null && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditItem(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h3 className="font-semibold text-gray-900">
                 {editItem === 'new' ? 'Add Menu Item' : 'Edit Menu Item'}
@@ -209,6 +237,56 @@ export default function MenuManagement() {
               </button>
             </div>
             <div className="p-5 space-y-4">
+              {/* Image upload */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Item Photo</label>
+                {form.image_url ? (
+                  <div className="relative inline-block">
+                    <img src={form.image_url} alt="" className="w-full h-40 rounded-xl object-cover border border-gray-200" />
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, image_url: '' }))}
+                      className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => imageInputRef.current?.click()}
+                    className="w-full h-32 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition-colors"
+                  >
+                    {uploading ? (
+                      <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                        <span className="text-sm text-gray-500">Click to upload photo</span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => handleImageUpload(e.target.files[0])}
+                />
+                {!form.image_url && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
+                    <input
+                      type="url"
+                      value={form.image_url || ''}
+                      onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Or paste image URL..."
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Name *</label>
                 <input
@@ -255,16 +333,6 @@ export default function MenuManagement() {
                     {categories.map(c => <option key={c} value={c} />)}
                   </datalist>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Image URL (optional)</label>
-                <input
-                  type="url"
-                  value={form.image_url}
-                  onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="https://..."
-                />
               </div>
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex gap-3">

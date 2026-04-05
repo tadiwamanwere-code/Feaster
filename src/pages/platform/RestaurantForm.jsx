@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, X, Save, Image, Loader, Link2 } from 'lucide-react'
-import { getRestaurants, addRestaurant, updateRestaurant, setupTables, getTables } from '../../lib/services'
+import { getRestaurantById, addRestaurant, updateRestaurant, setupTables, uploadImage, isSlugAvailable } from '../../lib/services'
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const DAY_LABELS = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
@@ -37,11 +37,10 @@ export default function RestaurantForm() {
 
   const isEdit = !!id
 
-  // Load existing restaurant for editing
+  // Load existing restaurant for editing (single doc read instead of fetching all)
   useEffect(() => {
     if (!id) return
-    getRestaurants().then(all => {
-      const rest = all.find(r => r.id === id)
+    getRestaurantById(id).then(rest => {
       if (rest) {
         setForm({
           name: rest.name || '',
@@ -73,26 +72,25 @@ export default function RestaurantForm() {
     }))
   }
 
-  const handleImageUpload = (file, type) => {
+  const handleImageUpload = async (file, type) => {
     if (!file) return
 
     const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
     setUploading(true)
     setError('')
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
+    try {
+      const path = `restaurants/${form.slug || Date.now()}/${type}_${Date.now()}.${file.name.split('.').pop()}`
+      const url = await uploadImage(path, file)
       setForm(f => ({
         ...f,
-        [type === 'logo' ? 'logo_url' : 'cover_photo_url']: e.target.result,
+        [type === 'logo' ? 'logo_url' : 'cover_photo_url']: url,
       }))
-      setUploading(false)
+    } catch (err) {
+      console.error('Image upload failed:', err)
+      setError(`Failed to upload ${type} image. Please try again.`)
     }
-    reader.onerror = () => {
-      setError('Failed to read image file')
-      setUploading(false)
-    }
-    reader.readAsDataURL(file)
+    setUploading(false)
   }
 
   const togglePayment = (method) => {
@@ -121,6 +119,9 @@ export default function RestaurantForm() {
 
     setSaving(true)
     try {
+      const slugOk = await isSlugAvailable(form.slug.trim(), isEdit ? id : null)
+      if (!slugOk) { setError('That URL slug is already taken. Choose a different one.'); setSaving(false); return }
+
       const { table_count, ...restData } = form
       const data = { ...restData, name: form.name.trim(), slug: form.slug.trim(), table_count: parseInt(table_count) || 0 }
       if (isEdit) {

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Save, Upload, Trash2, PauseCircle, PlayCircle, AlertTriangle, X, Image, Link2, Loader } from 'lucide-react'
-import { getRestaurantBySlug, updateRestaurant, deleteRestaurant } from '../../lib/services'
+import { getRestaurantBySlug, updateRestaurant, deleteRestaurant, uploadImage } from '../../lib/services'
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const DAY_LABELS = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
@@ -109,22 +109,23 @@ export default function RestaurantSettings() {
     }
   }
 
-  const handleImageUpload = (file, type) => {
+  const handleImageUpload = async (file, type) => {
     if (!file) return
 
     const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
     setUploading(true)
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
+    try {
+      const path = `restaurants/${slug}/${type}_${Date.now()}.${file.name.split('.').pop()}`
+      const url = await uploadImage(path, file)
       setForm(f => ({
         ...f,
-        [type === 'logo' ? 'logo_url' : 'cover_photo_url']: e.target.result,
+        [type === 'logo' ? 'logo_url' : 'cover_photo_url']: url,
       }))
-      setUploading(false)
+    } catch (err) {
+      console.error('Image upload failed:', err)
     }
-    reader.onerror = () => setUploading(false)
-    reader.readAsDataURL(file)
+    setUploading(false)
   }
 
   const togglePayment = (method) => {
