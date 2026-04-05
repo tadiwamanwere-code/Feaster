@@ -12,7 +12,7 @@ export default function SystemLogin() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    getRestaurants()
+    getRestaurants({ activeOnly: false })
       .then(data => setRestaurants(data))
       .catch(() => setRestaurants([]))
       .finally(() => setLoading(false))

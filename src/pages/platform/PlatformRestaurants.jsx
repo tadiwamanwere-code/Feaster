@@ -10,7 +10,7 @@ export default function PlatformRestaurants() {
   const [qrRestaurant, setQrRestaurant] = useState(null)
 
   useEffect(() => {
-    getRestaurants()
+    getRestaurants({ activeOnly: false })
       .then(setRestaurants)
       .catch(() => setRestaurants([]))
       .finally(() => setLoading(false))

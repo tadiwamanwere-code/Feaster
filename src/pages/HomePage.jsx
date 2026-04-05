@@ -73,9 +73,11 @@ export default function HomePage() {
   useEffect(() => {
     getRestaurants()
       .then(data => {
+        // Show real restaurants, append demo only if none exist
         setRestaurants(data.length > 0 ? data : DEMO_RESTAURANTS)
       })
       .catch(() => {
+        // Firebase not configured — show demo
         setRestaurants(DEMO_RESTAURANTS)
       })
       .finally(() => setLoading(false))

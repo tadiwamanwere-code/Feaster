@@ -9,10 +9,12 @@ async function fs() {
 
 // ─── Restaurants ───────────────────────────────────────────────
 
-export async function getRestaurants() {
+export async function getRestaurants({ activeOnly = true } = {}) {
   const { collection, query, where, getDocs } = await fs()
   const db = await getDb()
-  const q = query(collection(db, 'restaurants'), where('is_active', '==', true))
+  const q = activeOnly
+    ? query(collection(db, 'restaurants'), where('is_active', '==', true))
+    : query(collection(db, 'restaurants'))
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
@@ -191,6 +193,25 @@ export async function getTimestamp() {
 }
 
 // ─── Platform Admin (restaurant CRUD) ──────────────────────────
+
+export async function getRestaurantById(id) {
+  const { doc, getDoc } = await fs()
+  const db = await getDb()
+  const snap = await getDoc(doc(db, 'restaurants', id))
+  if (!snap.exists()) return null
+  return { id: snap.id, ...snap.data() }
+}
+
+export async function isSlugAvailable(slug, excludeId = null) {
+  const { collection, query, where, getDocs } = await fs()
+  const db = await getDb()
+  const q = query(collection(db, 'restaurants'), where('slug', '==', slug))
+  const snap = await getDocs(q)
+  if (snap.empty) return true
+  // If editing, the existing doc with same slug is OK
+  if (excludeId && snap.docs.length === 1 && snap.docs[0].id === excludeId) return true
+  return false
+}
 
 export async function addRestaurant(data) {
   const { collection, addDoc, serverTimestamp } = await fs()
