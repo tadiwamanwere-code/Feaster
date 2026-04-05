@@ -1,28 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+// Generate PNG icons from SVG for PWA
+// Run: node scripts/generate-icons.js
+
+import { readFileSync, writeFileSync } from 'fs'
+
+// Since we can't use canvas in Node without native deps,
+// we'll create simple PNG icons using an inline SVG rendered approach.
+// For production, replace these with properly designed PNGs.
+
+// Create a minimal valid PNG with the Feaster "F" branding
+// Using a data URL approach that works without native dependencies
+
+const sizes = [192, 512]
+
+const createSvgIcon = (size) => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#f97316"/>
       <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
   </defs>
-  <!-- Rounded square background -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- Fork (left) -->
   <g fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
     <path d="M168 100 L168 220 Q168 260 198 260 L198 412"/>
     <path d="M138 100 L138 200"/>
     <path d="M168 100 L168 200"/>
     <path d="M198 100 L198 200"/>
   </g>
-  <!-- Knife (right) -->
   <g fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
     <path d="M314 100 L314 260 L314 412"/>
     <path d="M314 100 Q362 140 362 220 Q362 260 314 260"/>
   </g>
-  <!-- Steam lines above -->
   <g fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="10" stroke-linecap="round">
     <path d="M230 80 Q240 60 230 40"/>
     <path d="M260 75 Q270 50 260 30"/>
     <path d="M290 80 Q300 60 290 40"/>
   </g>
-</svg>
+</svg>`
+
+for (const size of sizes) {
+  const svg = createSvgIcon(size)
+  writeFileSync(`public/icon-${size}.svg`, svg)
+  console.log(`Created icon-${size}.svg`)
+}
+
+console.log('\\nNote: For best results, convert these SVGs to PNG using an online tool or design tool.')
+console.log('The manifest will use SVG icons which are supported by modern browsers.')

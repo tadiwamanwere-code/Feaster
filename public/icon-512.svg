@@ -1,25 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#f97316"/>
       <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
   </defs>
-  <!-- Rounded square background -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- Fork (left) -->
   <g fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
     <path d="M168 100 L168 220 Q168 260 198 260 L198 412"/>
     <path d="M138 100 L138 200"/>
     <path d="M168 100 L168 200"/>
     <path d="M198 100 L198 200"/>
   </g>
-  <!-- Knife (right) -->
   <g fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
     <path d="M314 100 L314 260 L314 412"/>
     <path d="M314 100 Q362 140 362 220 Q362 260 314 260"/>
   </g>
-  <!-- Steam lines above -->
   <g fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="10" stroke-linecap="round">
     <path d="M230 80 Q240 60 230 40"/>
     <path d="M260 75 Q270 50 260 30"/>

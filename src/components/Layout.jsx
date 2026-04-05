@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { ShoppingBag, Home, UtensilsCrossed } from 'lucide-react'
+import { ShoppingBag, Home } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import PWAInstallPrompt from './PWAInstallPrompt'
 
 export default function Layout() {
   const { itemCount } = useCart()
@@ -16,8 +17,16 @@ export default function Layout() {
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-              <UtensilsCrossed className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center overflow-hidden">
+              <svg width="20" height="20" viewBox="0 0 512 512" fill="none">
+                <g stroke="white" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M168 80L168 220Q168 260 198 260L198 432"/>
+                  <path d="M128 80L128 200"/>
+                  <path d="M208 80L208 200"/>
+                  <path d="M314 80L314 260L314 432"/>
+                  <path d="M314 80Q372 130 372 220Q372 260 314 260"/>
+                </g>
+              </svg>
             </div>
             <span className="text-xl font-bold text-gray-900">Feaster</span>
           </Link>
@@ -33,6 +42,10 @@ export default function Layout() {
       <main className="max-w-5xl mx-auto">
         <Outlet />
       </main>
+
+      {/* Cart FAB - shows when items in cart */}
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
 
       {/* Cart FAB - shows when items in cart */}
       {itemCount > 0 && !location.pathname.includes('/checkout') && (
