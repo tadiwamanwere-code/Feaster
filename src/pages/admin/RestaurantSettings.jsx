@@ -111,7 +111,6 @@ export default function RestaurantSettings() {
 
   const handleImageUpload = (file, type) => {
     if (!file) return
-    if (file.size > 2 * 1024 * 1024) return
 
     const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
     setUploading(true)
@@ -272,7 +271,7 @@ export default function RestaurantSettings() {
               <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="text-sm text-orange-600 font-medium hover:text-orange-700">
                 {uploadingLogo ? 'Processing...' : 'Choose file'}
               </button>
-              <p className="text-xs text-gray-400">Square, under 2MB — or paste a URL below</p>
+              <p className="text-xs text-gray-400">Square image — or paste a URL below</p>
               <div className="flex items-center gap-2">
                 <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
                 <input
@@ -304,7 +303,7 @@ export default function RestaurantSettings() {
                 <>
                   <Upload className="w-6 h-6 text-gray-400 mb-2" />
                   <span className="text-sm text-gray-500">Click to upload cover photo</span>
-                  <span className="text-xs text-gray-400 mt-0.5">Landscape, under 2MB</span>
+                  <span className="text-xs text-gray-400 mt-0.5">Landscape image</span>
                 </>
               )}
             </div>
