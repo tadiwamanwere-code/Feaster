@@ -29,8 +29,16 @@ export default function SystemLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-[100dvh] flex items-center justify-center px-4">
+      {/* Background image */}
+      <img
+        src="/hero-bg.jpg"
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-black/70" />
+
+      <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -47,7 +55,7 @@ export default function SystemLogin() {
             {loading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-16 bg-gray-800 rounded-xl animate-pulse" />
+                  <div key={i} className="h-16 bg-white/10 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : restaurants.length === 0 ? (
@@ -60,7 +68,7 @@ export default function SystemLogin() {
                   <button
                     key={rest.id}
                     onClick={() => { setSelectedSlug(rest.slug); setError('') }}
-                    className="w-full flex items-center gap-3 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-orange-500/50 rounded-xl p-4 text-left transition-colors group"
+                    className="w-full flex items-center gap-3 bg-white/10 hover:bg-white/15 border border-white/10 hover:border-orange-500/50 rounded-xl p-4 text-left transition-colors group"
                   >
                     {rest.logo_url ? (
                       <img src={rest.logo_url} alt="" className="w-11 h-11 rounded-lg object-cover" />
@@ -93,7 +101,7 @@ export default function SystemLogin() {
               Back to restaurants
             </button>
 
-            <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+            <div className="bg-white/10 rounded-xl p-5 border border-white/10">
               <p className="text-sm text-gray-400 mb-1">Logging into</p>
               <p className="text-lg font-semibold text-white mb-5 capitalize">{selectedSlug}</p>
 
@@ -106,7 +114,7 @@ export default function SystemLogin() {
                   value={pin}
                   onChange={e => { setPin(e.target.value); setError('') }}
                   placeholder="Enter PIN"
-                  className="w-full px-4 py-4 bg-gray-900 border border-gray-600 rounded-xl text-white text-center text-2xl tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-4"
+                  className="w-full px-4 py-4 bg-black/40 border border-white/15 rounded-xl text-white text-center text-2xl tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-4"
                   autoFocus
                 />
                 {error && <p className="text-sm text-red-400 mb-3 text-center">{error}</p>}
