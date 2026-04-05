@@ -92,6 +92,30 @@ export async function deleteTable(id) {
   await deleteDoc(doc(db, 'tables', id))
 }
 
+export async function setupTables(restaurantId, tableCount) {
+  const existing = await getTables(restaurantId)
+  const existingNumbers = new Set(existing.map(t => t.table_number))
+
+  // Add missing tables
+  const promises = []
+  for (let i = 1; i <= tableCount; i++) {
+    const num = String(i)
+    if (!existingNumbers.has(num)) {
+      promises.push(addTable({ table_number: num, restaurant_id: restaurantId }))
+    }
+  }
+
+  // Remove tables with numbers above the count (only numbered ones)
+  for (const table of existing) {
+    const n = parseInt(table.table_number, 10)
+    if (!isNaN(n) && n > tableCount) {
+      promises.push(deleteTable(table.id))
+    }
+  }
+
+  await Promise.all(promises)
+}
+
 // ─── Orders ────────────────────────────────────────────────────
 
 export async function createOrder(orderData) {

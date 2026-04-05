@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, X, Save, Image, Loader, Link2 } from 'lucide-react'
-import { getRestaurants, addRestaurant, updateRestaurant } from '../../lib/services'
+import { getRestaurants, addRestaurant, updateRestaurant, setupTables, getTables } from '../../lib/services'
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const DAY_LABELS = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
@@ -20,6 +20,7 @@ const EMPTY_FORM = {
   subscription_tier: 'pro',
   kitchen_pin: '1234',
   rating: null,
+  table_count: 0,
 }
 
 export default function RestaurantForm() {
@@ -56,6 +57,7 @@ export default function RestaurantForm() {
           subscription_tier: rest.subscription_tier || 'pro',
           kitchen_pin: rest.kitchen_pin || '1234',
           rating: rest.rating || null,
+          table_count: rest.table_count || 0,
         })
       }
       setLoading(false)
@@ -124,11 +126,14 @@ export default function RestaurantForm() {
 
     setSaving(true)
     try {
-      const data = { ...form, name: form.name.trim(), slug: form.slug.trim() }
+      const { table_count, ...restData } = form
+      const data = { ...restData, name: form.name.trim(), slug: form.slug.trim(), table_count: parseInt(table_count) || 0 }
       if (isEdit) {
         await updateRestaurant(id, data)
+        if (data.table_count > 0) await setupTables(id, data.table_count)
       } else {
-        await addRestaurant(data)
+        const docRef = await addRestaurant(data)
+        if (data.table_count > 0) await setupTables(docRef.id, data.table_count)
       }
       navigate('/platform')
     } catch (err) {
@@ -343,6 +348,24 @@ export default function RestaurantForm() {
                 />
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Tables */}
+        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+          <h2 className="font-semibold text-gray-900">Table Setup</h2>
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Number of Tables</label>
+            <input
+              type="number"
+              min="0"
+              max="200"
+              value={form.table_count}
+              onChange={e => setForm(f => ({ ...f, table_count: e.target.value }))}
+              className="w-32 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="0"
+            />
+            <p className="text-xs text-gray-400 mt-1">Tables will be numbered 1 to N. Each gets a unique QR code for dine-in ordering.</p>
           </div>
         </div>
 

@@ -3,9 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingBag, Clock, DollarSign, Users, ChefHat,
   Bell, Check, Package, LogOut, Printer, Hash, CreditCard, Banknote,
-  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter
+  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter, QrCode, Download
 } from 'lucide-react'
-import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant } from '../../lib/services'
+import QRCodeLib from 'qrcode'
+import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables } from '../../lib/services'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
 
 const NEXT_STATUS = { pending: 'confirmed', confirmed: 'preparing', preparing: 'ready', ready: 'completed' }
@@ -30,6 +31,9 @@ export default function POSDashboard() {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showQR, setShowQR] = useState(false)
+  const [tables, setTables] = useState([])
+  const [qrCodes, setQrCodes] = useState({})
   const prevCount = useRef(0)
   const audioRef = useRef(null)
 
@@ -42,6 +46,14 @@ export default function POSDashboard() {
         if (rest) {
           const orders = await getOrdersByRestaurant(rest.id)
           setAllOrders(orders)
+          const t = await getTables(rest.id)
+          t.sort((a, b) => {
+            const na = parseInt(a.table_number, 10)
+            const nb = parseInt(b.table_number, 10)
+            if (!isNaN(na) && !isNaN(nb)) return na - nb
+            return a.table_number.localeCompare(b.table_number)
+          })
+          setTables(t)
         }
       } catch {
         setRestaurant({ id: 'demo', slug, name: slug })
@@ -51,12 +63,33 @@ export default function POSDashboard() {
     load()
   }, [slug])
 
+  // Generate QR codes when tables change
+  useEffect(() => {
+    if (tables.length === 0) return
+    async function gen() {
+      const codes = {}
+      for (const table of tables) {
+        const url = `${window.location.origin}/${slug}/table/${table.table_number}`
+        try {
+          codes[table.id] = await QRCodeLib.toDataURL(url, {
+            width: 300, margin: 2,
+            color: { dark: '#1f2937', light: '#ffffff' },
+          })
+        } catch {}
+      }
+      setQrCodes(codes)
+    }
+    gen()
+  }, [tables, slug])
+
   useEffect(() => {
     if (!restaurant?.id) return
 
     if (restaurant.id === 'demo') {
       setActiveOrders(DEMO_ORDERS)
       setAllOrders(DEMO_ORDERS)
+      const demoTables = [1,2,3,4,5,6].map(n => ({ id: `dt${n}`, table_number: String(n) }))
+      setTables(demoTables)
       return
     }
 
@@ -139,7 +172,16 @@ export default function POSDashboard() {
             <p className="text-[10px] text-gray-500">Feaster POS System</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowQR(!showQR)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              showQR ? 'bg-orange-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+            }`}
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="hidden sm:inline">QR Codes</span>
+          </button>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-xs text-green-400">Live</span>
@@ -175,7 +217,74 @@ export default function POSDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* QR Codes Panel */}
+        {showQR && (
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold">Table QR Codes</h2>
+                <p className="text-sm text-gray-500">{tables.length} tables — scan to open dine-in menu</p>
+              </div>
+              {tables.length > 0 && (
+                <button
+                  onClick={() => {
+                    const pw = window.open('', '_blank')
+                    pw.document.write(`<html><head><title>QR Codes — ${restaurant?.name}</title><style>body{font-family:system-ui,sans-serif;padding:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{text-align:center;border:1px solid #e5e7eb;border-radius:12px;padding:16px;break-inside:avoid}.card img{width:200px;height:200px}.card h3{margin:8px 0 4px;font-size:18px}.card p{font-size:12px;color:#6b7280;margin:0}@media print{.grid{grid-template-columns:repeat(3,1fr)}}</style></head><body><h1 style="margin-bottom:20px">${restaurant?.name} — Table QR Codes</h1><div class="grid">${tables.map(t => `<div class="card"><img src="${qrCodes[t.id] || ''}" /><h3>Table ${t.table_number}</h3><p>Scan to order</p></div>`).join('')}</div></body></html>`)
+                    pw.document.close()
+                    pw.print()
+                  }}
+                  className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print All
+                </button>
+              )}
+            </div>
+            {tables.length === 0 ? (
+              <div className="text-center py-16">
+                <QrCode className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                <p className="text-gray-500">No tables configured</p>
+                <p className="text-sm text-gray-600 mt-1">Add tables from the Admin Panel or Platform Dashboard</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {tables.map(table => (
+                  <div key={table.id} className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
+                    <div className="p-3 flex justify-center bg-white rounded-t-xl">
+                      {qrCodes[table.id] ? (
+                        <img src={qrCodes[table.id]} alt={`Table ${table.table_number}`} className="w-28 h-28" />
+                      ) : (
+                        <div className="w-28 h-28 flex items-center justify-center">
+                          <QrCode className="w-8 h-8 text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 text-center">
+                      <p className="font-semibold text-sm">Table {table.table_number}</p>
+                      <button
+                        onClick={() => {
+                          const qr = qrCodes[table.id]
+                          if (!qr) return
+                          const link = document.createElement('a')
+                          link.download = `${slug}-table-${table.table_number}-qr.png`
+                          link.href = qr
+                          link.click()
+                        }}
+                        className="mt-2 flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-gray-700 rounded-lg text-xs font-medium text-gray-300 hover:bg-gray-600"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Orders List (left panel) */}
+        {!showQR && <>
         <div className="w-full lg:w-[420px] xl:w-[480px] border-r border-gray-800 flex flex-col shrink-0">
           {/* Filter bar */}
           <div className="px-4 py-3 border-b border-gray-800 space-y-2">
@@ -276,6 +385,7 @@ export default function POSDashboard() {
             </div>
           )}
         </div>
+        </>}
       </div>
     </div>
   )

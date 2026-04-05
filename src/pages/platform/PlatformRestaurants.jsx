@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, ExternalLink, ChefHat, MapPin, Eye, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Trash2, ExternalLink, ChefHat, MapPin, Eye, EyeOff, QrCode } from 'lucide-react'
 import { getRestaurants, updateRestaurant, deleteRestaurant } from '../../lib/services'
+import QRCodesModal from '../../components/QRCodesModal'
 
 export default function PlatformRestaurants() {
   const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
+  const [qrRestaurant, setQrRestaurant] = useState(null)
 
   useEffect(() => {
     getRestaurants()
@@ -117,6 +119,13 @@ export default function PlatformRestaurants() {
                     <ChefHat className="w-3.5 h-3.5" />
                     Admin Panel
                   </Link>
+                  <button
+                    onClick={() => setQrRestaurant(rest)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 rounded-lg text-xs font-medium text-orange-600 hover:bg-orange-100"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    QR Codes
+                  </button>
                   <a
                     href={`/${rest.slug}`}
                     target="_blank"
@@ -156,6 +165,11 @@ export default function PlatformRestaurants() {
           </div>
         )}
       </div>
+
+      {/* QR Codes Modal */}
+      {qrRestaurant && (
+        <QRCodesModal restaurant={qrRestaurant} onClose={() => setQrRestaurant(null)} />
+      )}
     </div>
   )
 }
