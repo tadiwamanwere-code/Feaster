@@ -3,11 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, ShoppingBag, Clock, DollarSign, Users, ChefHat,
   Bell, Check, Package, LogOut, Printer, Hash, CreditCard, Banknote,
-  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter, QrCode, Download
+  Smartphone, MapPin, ArrowRight, RefreshCw, Search, Filter, QrCode, Download, Store, UtensilsCrossed
 } from 'lucide-react'
 import QRCodeLib from 'qrcode'
 import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables } from '../../lib/services'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
+import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
 const NEXT_STATUS = { pending: 'confirmed', confirmed: 'preparing', preparing: 'ready', ready: 'completed' }
 const STATUS_CONFIG = {
@@ -32,8 +33,10 @@ export default function POSDashboard() {
   const [filter, setFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showQR, setShowQR] = useState(false)
+  const [qrTab, setQrTab] = useState('restaurant')
   const [tables, setTables] = useState([])
   const [qrCodes, setQrCodes] = useState({})
+  const [restaurantQR, setRestaurantQR] = useState(null)
   const prevCount = useRef(0)
   const audioRef = useRef(null)
 
@@ -63,7 +66,19 @@ export default function POSDashboard() {
     load()
   }, [slug])
 
-  // Generate QR codes when tables change
+  // Generate restaurant QR
+  useEffect(() => {
+    async function gen() {
+      try {
+        setRestaurantQR(await QRCodeLib.toDataURL(`${window.location.origin}/${slug}`, {
+          width: 400, margin: 2, color: { dark: '#1f2937', light: '#ffffff' },
+        }))
+      } catch {}
+    }
+    gen()
+  }, [slug])
+
+  // Generate table QR codes
   useEffect(() => {
     if (tables.length === 0) return
     async function gen() {
@@ -72,7 +87,7 @@ export default function POSDashboard() {
         const url = `${window.location.origin}/${slug}/table/${table.table_number}`
         try {
           codes[table.id] = await QRCodeLib.toDataURL(url, {
-            width: 300, margin: 2,
+            width: 400, margin: 2,
             color: { dark: '#1f2937', light: '#ffffff' },
           })
         } catch {}
@@ -220,64 +235,142 @@ export default function POSDashboard() {
         {/* QR Codes Panel */}
         {showQR && (
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-lg font-bold">Table QR Codes</h2>
-                <p className="text-sm text-gray-500">{tables.length} tables — scan to open dine-in menu</p>
-              </div>
-              {tables.length > 0 && (
-                <button
-                  onClick={() => {
-                    const pw = window.open('', '_blank')
-                    pw.document.write(`<html><head><title>QR Codes — ${restaurant?.name}</title><style>body{font-family:system-ui,sans-serif;padding:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{text-align:center;border:1px solid #e5e7eb;border-radius:12px;padding:16px;break-inside:avoid}.card img{width:200px;height:200px}.card h3{margin:8px 0 4px;font-size:18px}.card p{font-size:12px;color:#6b7280;margin:0}@media print{.grid{grid-template-columns:repeat(3,1fr)}}</style></head><body><h1 style="margin-bottom:20px">${restaurant?.name} — Table QR Codes</h1><div class="grid">${tables.map(t => `<div class="card"><img src="${qrCodes[t.id] || ''}" /><h3>Table ${t.table_number}</h3><p>Scan to order</p></div>`).join('')}</div></body></html>`)
-                    pw.document.close()
-                    pw.print()
-                  }}
-                  className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100 transition-colors"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print All
-                </button>
-              )}
+            {/* Sub-tabs */}
+            <div className="flex gap-1 bg-gray-800 p-1 rounded-xl w-fit mb-6">
+              <button
+                onClick={() => setQrTab('restaurant')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  qrTab === 'restaurant' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Store className="w-4 h-4" />
+                Restaurant QR
+              </button>
+              <button
+                onClick={() => setQrTab('tables')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  qrTab === 'tables' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <UtensilsCrossed className="w-4 h-4" />
+                Dine-In Tables ({tables.length})
+              </button>
             </div>
-            {tables.length === 0 ? (
-              <div className="text-center py-16">
-                <QrCode className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                <p className="text-gray-500">No tables configured</p>
-                <p className="text-sm text-gray-600 mt-1">Add tables from the Admin Panel or Platform Dashboard</p>
+
+            {qrTab === 'restaurant' ? (
+              /* Restaurant QR */
+              <div className="max-w-sm mx-auto text-center">
+                <div className="bg-gray-800/50 rounded-2xl border border-gray-700 p-8">
+                  <div className="inline-flex items-center gap-1.5 bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold tracking-wide mb-4">
+                    <Store className="w-3 h-3" />
+                    RESTAURANT
+                  </div>
+                  {restaurantQR ? (
+                    <div className="bg-white rounded-xl p-3 inline-block">
+                      <img src={restaurantQR} alt="Restaurant QR" className="w-44 h-44" />
+                    </div>
+                  ) : (
+                    <div className="w-44 h-44 mx-auto flex items-center justify-center bg-gray-700 rounded-xl">
+                      <QrCode className="w-14 h-14 text-gray-500" />
+                    </div>
+                  )}
+                  <h3 className="text-lg font-bold mt-4">{restaurant?.name}</h3>
+                  <p className="text-sm text-gray-400 mt-1">Scan to view menu & order</p>
+                  <p className="text-xs text-gray-600 font-mono mt-2">{window.location.origin}/{slug}</p>
+                  <div className="flex gap-3 mt-5 justify-center">
+                    <button
+                      onClick={() => downloadQRImage(restaurantQR, `${slug}-restaurant-qr.png`)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-700 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-600"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </button>
+                    <button
+                      onClick={() => {
+                        const html = buildQRPrintHTML({
+                          restaurantName: restaurant?.name || slug,
+                          type: 'restaurant',
+                          items: [{ qrDataUrl: restaurantQR, label: restaurant?.name || slug, sublabel: 'Scan to view menu & order', url: `${window.location.origin}/${slug}` }],
+                        })
+                        const pw = window.open('', '_blank')
+                        pw.document.write(html)
+                        pw.document.close()
+                        pw.print()
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 rounded-xl text-sm font-medium text-white hover:bg-orange-700"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 mt-3">
+                  Use this QR on flyers, posters, or at the entrance for customers to browse & order.
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {tables.map(table => (
-                  <div key={table.id} className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
-                    <div className="p-3 flex justify-center bg-white rounded-t-xl">
-                      {qrCodes[table.id] ? (
-                        <img src={qrCodes[table.id]} alt={`Table ${table.table_number}`} className="w-28 h-28" />
-                      ) : (
-                        <div className="w-28 h-28 flex items-center justify-center">
-                          <QrCode className="w-8 h-8 text-gray-300" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 text-center">
-                      <p className="font-semibold text-sm">Table {table.table_number}</p>
-                      <button
-                        onClick={() => {
-                          const qr = qrCodes[table.id]
-                          if (!qr) return
-                          const link = document.createElement('a')
-                          link.download = `${slug}-table-${table.table_number}-qr.png`
-                          link.href = qr
-                          link.click()
-                        }}
-                        className="mt-2 flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-gray-700 rounded-lg text-xs font-medium text-gray-300 hover:bg-gray-600"
-                      >
-                        <Download className="w-3 h-3" />
-                        Download
-                      </button>
-                    </div>
+              /* Table QR Codes */
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-400">
+                    {tables.length} table{tables.length !== 1 ? 's' : ''} — each QR activates dine-in with table number
+                  </p>
+                  {tables.length > 0 && (
+                    <button
+                      onClick={() => {
+                        const items = tables.map(t => ({
+                          qrDataUrl: qrCodes[t.id],
+                          label: `Table ${t.table_number}`,
+                          sublabel: 'Scan to order — Dine In',
+                          url: `${window.location.origin}/${slug}/table/${t.table_number}`,
+                        }))
+                        const html = buildQRPrintHTML({ restaurantName: restaurant?.name || slug, type: 'table', items })
+                        const pw = window.open('', '_blank')
+                        pw.document.write(html)
+                        pw.document.close()
+                        pw.print()
+                      }}
+                      className="flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-100"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print All (4 per A4)
+                    </button>
+                  )}
+                </div>
+                {tables.length === 0 ? (
+                  <div className="text-center py-16">
+                    <QrCode className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                    <p className="text-gray-500">No tables configured</p>
+                    <p className="text-sm text-gray-600 mt-1">Add tables from the Admin Panel or Platform Dashboard</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {tables.map(table => (
+                      <div key={table.id} className="bg-gray-800/50 rounded-xl border border-gray-700 overflow-hidden">
+                        <div className="p-3 flex justify-center bg-white rounded-t-xl">
+                          {qrCodes[table.id] ? (
+                            <img src={qrCodes[table.id]} alt={`Table ${table.table_number}`} className="w-28 h-28" />
+                          ) : (
+                            <div className="w-28 h-28 flex items-center justify-center">
+                              <QrCode className="w-8 h-8 text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3 text-center">
+                          <span className="inline-block bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide mb-1">DINE IN</span>
+                          <p className="font-bold text-sm">Table {table.table_number}</p>
+                          <button
+                            onClick={() => downloadQRImage(qrCodes[table.id], `${slug}-table-${table.table_number}-qr.png`)}
+                            className="mt-2 flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-gray-700 rounded-lg text-xs font-medium text-gray-300 hover:bg-gray-600"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
