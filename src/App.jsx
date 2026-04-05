@@ -29,6 +29,9 @@ const TableManagement = lazy(() => import('./pages/admin/TableManagement'))
 const OrderHistory = lazy(() => import('./pages/admin/OrderHistory'))
 const PreOrderCalendar = lazy(() => import('./pages/admin/PreOrderCalendar'))
 const RestaurantSettings = lazy(() => import('./pages/admin/RestaurantSettings'))
+const PlatformLayout = lazy(() => import('./pages/platform/PlatformLayout'))
+const PlatformRestaurants = lazy(() => import('./pages/platform/PlatformRestaurants'))
+const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
 
 export default function App() {
   return (
@@ -58,6 +61,13 @@ export default function App() {
                 <Route path="orders" element={<OrderHistory />} />
                 <Route path="calendar" element={<PreOrderCalendar />} />
                 <Route path="settings" element={<RestaurantSettings />} />
+              </Route>
+
+              {/* Platform admin (Feaster creator only) */}
+              <Route path="/platform" element={<PlatformLayout />}>
+                <Route index element={<PlatformRestaurants />} />
+                <Route path="add" element={<RestaurantForm />} />
+                <Route path="edit/:id" element={<RestaurantForm />} />
               </Route>
             </Routes>
           </Suspense>

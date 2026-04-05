@@ -2,6 +2,7 @@
 let _app = null
 let _db = null
 let _auth = null
+let _storage = null
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-key',
@@ -27,6 +28,15 @@ export async function getDb() {
     _db = getFirestore(app)
   }
   return _db
+}
+
+export async function getStorageInstance() {
+  if (!_storage) {
+    const app = await getApp()
+    const { getStorage } = await import('firebase/storage')
+    _storage = getStorage(app)
+  }
+  return _storage
 }
 
 export async function getAuthInstance() {

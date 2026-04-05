@@ -1,4 +1,4 @@
-import { getDb } from './firebase'
+import { getDb, getStorageInstance } from './firebase'
 
 // Lazy-load Firestore functions only when needed
 let _firestore = null
@@ -164,4 +164,32 @@ export async function getOrdersByRestaurant(restaurantId) {
 export async function getTimestamp() {
   const { Timestamp } = await fs()
   return Timestamp
+}
+
+// ─── Platform Admin (restaurant CRUD) ──────────────────────────
+
+export async function addRestaurant(data) {
+  const { collection, addDoc, serverTimestamp } = await fs()
+  const db = await getDb()
+  return addDoc(collection(db, 'restaurants'), {
+    ...data,
+    is_active: true,
+    created_at: serverTimestamp(),
+  })
+}
+
+export async function deleteRestaurant(id) {
+  const { doc, deleteDoc } = await fs()
+  const db = await getDb()
+  await deleteDoc(doc(db, 'restaurants', id))
+}
+
+// ─── Image Uploads ─────────────────────────────────────────────
+
+export async function uploadImage(path, file) {
+  const storage = await getStorageInstance()
+  const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
+  const storageRef = ref(storage, path)
+  await uploadBytes(storageRef, file)
+  return getDownloadURL(storageRef)
 }
