@@ -16,7 +16,7 @@ export default function Layout() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/explore" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center overflow-hidden">
               <svg width="20" height="20" viewBox="0 0 512 512" fill="none">
                 <g stroke="white" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round">
@@ -31,7 +31,7 @@ export default function Layout() {
             <span className="text-xl font-bold text-gray-900">Feaster</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link to="/" className="text-gray-600 hover:text-orange-600">
+            <Link to="/explore" className="text-gray-600 hover:text-orange-600">
               <Home className="w-5 h-5" />
             </Link>
           </nav>

@@ -3,10 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 
-// Layout loads eagerly (small, needed immediately)
 import Layout from './components/Layout'
 
-// Loading spinner
 function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -15,7 +13,8 @@ function Loading() {
   )
 }
 
-// Lazy-loaded pages — each becomes its own chunk
+// Lazy-loaded pages
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const HomePage = lazy(() => import('./pages/HomePage'))
 const RestaurantPage = lazy(() => import('./pages/RestaurantPage'))
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
@@ -32,6 +31,8 @@ const RestaurantSettings = lazy(() => import('./pages/admin/RestaurantSettings')
 const PlatformLayout = lazy(() => import('./pages/platform/PlatformLayout'))
 const PlatformRestaurants = lazy(() => import('./pages/platform/PlatformRestaurants'))
 const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
+const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
+const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
 export default function App() {
   return (
@@ -40,19 +41,26 @@ export default function App() {
         <BrowserRouter>
           <Suspense fallback={<Loading />}>
             <Routes>
-              {/* Public routes */}
+              {/* Landing page */}
+              <Route path="/" element={<LandingPage />} />
+
+              {/* Customer routes */}
               <Route element={<Layout />}>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/explore" element={<HomePage />} />
                 <Route path="/:slug" element={<RestaurantPage />} />
                 <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
                 <Route path="/:slug/checkout" element={<CheckoutPage />} />
                 <Route path="/order/:orderId" element={<OrderConfirmationPage />} />
               </Route>
 
+              {/* POS System (cashier/restaurant tablet) */}
+              <Route path="/system/login" element={<SystemLogin />} />
+              <Route path="/pos/:slug" element={<POSDashboard />} />
+
               {/* Kitchen display */}
               <Route path="/kitchen/:slug" element={<KitchenDisplay />} />
 
-              {/* Admin */}
+              {/* Restaurant admin */}
               <Route path="/admin/:slug/login" element={<AdminLogin />} />
               <Route path="/admin/:slug" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
@@ -63,7 +71,7 @@ export default function App() {
                 <Route path="settings" element={<RestaurantSettings />} />
               </Route>
 
-              {/* Platform admin (Feaster creator only) */}
+              {/* Platform admin (Feaster creator) */}
               <Route path="/platform" element={<PlatformLayout />}>
                 <Route index element={<PlatformRestaurants />} />
                 <Route path="add" element={<RestaurantForm />} />
