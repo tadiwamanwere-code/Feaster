@@ -148,7 +148,7 @@ export default function POSDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-orange-400 border-t-orange-600 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-orange-400 border-t-orange-600 rounded-full animate-spin" />
       </div>
     )
   }

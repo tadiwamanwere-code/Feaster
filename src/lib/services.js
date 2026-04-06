@@ -347,10 +347,15 @@ function compressImage(file, { maxWidth = 800, quality = 0.7, forMenu = false } 
 // Ensure we have a Firebase Auth user — sign in anonymously if needed
 // so Firebase Storage rules (request.auth != null) are satisfied
 async function ensureAuth() {
-  const auth = await getAuthInstance()
-  if (!auth.currentUser) {
-    const { signInAnonymously } = await import('firebase/auth')
-    await signInAnonymously(auth)
+  try {
+    const auth = await getAuthInstance()
+    if (!auth.currentUser) {
+      const { signInAnonymously } = await import('firebase/auth')
+      await signInAnonymously(auth)
+    }
+  } catch {
+    // Anonymous auth may not be enabled — proceed anyway,
+    // upload will work if Storage rules allow it
   }
 }
 

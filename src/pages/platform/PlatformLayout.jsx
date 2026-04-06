@@ -97,13 +97,13 @@ export default function PlatformLayout() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="w-8 h-8 border-3 border-orange-400 border-t-orange-600 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-orange-400 border-t-orange-600 rounded-full animate-spin" />
       </div>
     )
   }
 
-  // Must be logged in
-  if (!user) return <PlatformLogin />
+  // Must be logged in with a real account (not anonymous)
+  if (!user || user.isAnonymous) return <PlatformLogin />
 
   // Must be an authorized admin
   if (!PLATFORM_ADMINS.includes(user.email)) {
