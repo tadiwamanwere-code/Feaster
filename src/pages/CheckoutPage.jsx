@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Minus, Plus, Trash2, Calendar, Clock, CreditCard, Banknote, Smartphone } from 'lucide-react'
 import { useCart } from '../context/CartContext'
-import { createOrder, getTimestamp } from '../lib/services'
+import { createOrder } from '../lib/services'
 
 const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash', icon: Banknote, description: 'Pay when food arrives' },
@@ -52,8 +52,7 @@ export default function CheckoutPage() {
     try {
       let deliveryTime = null
       if (orderType === 'pre_order' || orderType === 'takeout') {
-        const Timestamp = await getTimestamp()
-        deliveryTime = Timestamp.fromDate(new Date(`${scheduledDate}T${scheduledTime}`))
+        deliveryTime = new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
       }
 
       const orderData = {
@@ -76,9 +75,9 @@ export default function CheckoutPage() {
         notes: notes.trim() || null,
       }
 
-      const docRef = await createOrder(orderData)
+      const data = await createOrder(orderData)
       dispatch({ type: 'CLEAR_CART' })
-      navigate(`/order/${docRef.id}`)
+      navigate(`/order/${data.id}`)
     } catch (err) {
       console.error('Order failed:', err)
       setError('Failed to place order. Please check your connection and try again.')

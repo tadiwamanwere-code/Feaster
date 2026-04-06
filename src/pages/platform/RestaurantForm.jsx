@@ -132,8 +132,8 @@ export default function RestaurantForm() {
         if (data.table_count > 0) await setupTables(id, data.table_count)
         navigate('/platform')
       } else {
-        const docRef = await addRestaurant(data)
-        if (data.table_count > 0) await setupTables(docRef.id, data.table_count)
+        const result = await addRestaurant(data)
+        if (data.table_count > 0) await setupTables(result.id, data.table_count)
         navigate(`/admin/${data.slug}/menu`)
       }
     } catch (err) {

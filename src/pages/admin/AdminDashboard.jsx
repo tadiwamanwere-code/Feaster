@@ -18,11 +18,11 @@ export default function AdminDashboard() {
         } else {
           // Demo data
           setOrders([
-            { id: '1', total: 23.00, status: 'completed', order_type: 'dine_in', created_at: { toDate: () => new Date() } },
-            { id: '2', total: 19.50, status: 'preparing', order_type: 'takeout', created_at: { toDate: () => new Date() } },
-            { id: '3', total: 45.00, status: 'completed', order_type: 'dine_in', created_at: { toDate: () => new Date(Date.now() - 86400000) } },
-            { id: '4', total: 32.00, status: 'completed', order_type: 'pre_order', created_at: { toDate: () => new Date(Date.now() - 86400000) } },
-            { id: '5', total: 15.00, status: 'pending', order_type: 'dine_in', created_at: { toDate: () => new Date() } },
+            { id: '1', total: 23.00, status: 'completed', order_type: 'dine_in', created_at: new Date().toISOString() },
+            { id: '2', total: 19.50, status: 'preparing', order_type: 'takeout', created_at: new Date().toISOString() },
+            { id: '3', total: 45.00, status: 'completed', order_type: 'dine_in', created_at: new Date(Date.now() - 86400000).toISOString() },
+            { id: '4', total: 32.00, status: 'completed', order_type: 'pre_order', created_at: new Date(Date.now() - 86400000).toISOString() },
+            { id: '5', total: 15.00, status: 'pending', order_type: 'dine_in', created_at: new Date().toISOString() },
           ])
         }
       } catch {
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   }, [slug])
 
   const todayOrders = orders.filter(o => {
-    const d = o.created_at?.toDate?.()
+    const d = o.created_at ? new Date(o.created_at) : null
     return d && d.toDateString() === new Date().toDateString()
   })
   const todayRevenue = todayOrders.reduce((s, o) => s + (o.total || 0), 0)

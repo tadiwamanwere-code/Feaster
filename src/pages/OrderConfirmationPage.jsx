@@ -40,7 +40,7 @@ export default function OrderConfirmationPage() {
   // Cancellation countdown timer
   useEffect(() => {
     if (!order || order.status === 'cancelled') return
-    const createdAt = order.created_at?.toDate?.()
+    const createdAt = order.created_at ? new Date(order.created_at) : null
     if (!createdAt) return
 
     const tick = () => {

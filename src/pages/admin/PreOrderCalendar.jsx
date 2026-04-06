@@ -7,21 +7,21 @@ import { formatDate, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, add
 const DEMO_PRE_ORDERS = [
   {
     id: 'po1', customer_name: 'Grace T.', order_type: 'pre_order', status: 'pending',
-    delivery_time: { toDate: () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(19, 0); return d } },
+    delivery_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(19, 0); return d.toISOString() })(),
     items: [{ name: 'T-Bone Steak', quantity: 2 }, { name: 'Caesar Salad', quantity: 2 }], total: 51.00,
-    created_at: { toDate: () => new Date() },
+    created_at: new Date().toISOString(),
   },
   {
     id: 'po2', customer_name: 'Brian M.', order_type: 'pre_order', status: 'pending',
-    delivery_time: { toDate: () => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 30); return d } },
+    delivery_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(20, 30); return d.toISOString() })(),
     items: [{ name: 'Mozambican Prawns', quantity: 4 }, { name: 'Castle Lager', quantity: 4 }], total: 102.00,
-    created_at: { toDate: () => new Date() },
+    created_at: new Date().toISOString(),
   },
   {
     id: 'po3', customer_name: 'Linda K.', order_type: 'takeout', status: 'pending',
-    delivery_time: { toDate: () => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(12, 0); return d } },
+    delivery_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(12, 0); return d.toISOString() })(),
     items: [{ name: 'Classic Burger', quantity: 5 }, { name: 'Coca-Cola', quantity: 5 }], total: 52.50,
-    created_at: { toDate: () => new Date() },
+    created_at: new Date().toISOString(),
   },
 ]
 
@@ -62,7 +62,7 @@ export default function PreOrderCalendar() {
   const getOrdersForDate = (date) => {
     if (!date) return []
     return preOrders.filter(o => {
-      const deliveryDate = o.delivery_time?.toDate?.()
+      const deliveryDate = o.delivery_time ? new Date(o.delivery_time) : null
       return deliveryDate && isSameDay(deliveryDate, date)
     })
   }
@@ -153,7 +153,7 @@ export default function PreOrderCalendar() {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
                       <Clock className="w-3.5 h-3.5" />
-                      {order.delivery_time?.toDate && formatDate(order.delivery_time.toDate(), 'h:mm a')}
+                      {order.delivery_time && formatDate(new Date(order.delivery_time), 'h:mm a')}
                     </div>
                     <div className="text-xs text-gray-600 space-y-0.5">
                       {order.items?.map((item, i) => (

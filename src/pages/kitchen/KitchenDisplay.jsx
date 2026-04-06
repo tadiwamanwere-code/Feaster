@@ -202,8 +202,8 @@ export default function KitchenDisplay() {
         ) : (
           filteredOrders.map(order => {
             const action = STATUS_ACTIONS[order.status]
-            const timeAgo = order.created_at?.toDate
-              ? formatDistanceToNow(order.created_at.toDate(), { addSuffix: true })
+            const timeAgo = order.created_at
+              ? formatDistanceToNow(new Date(order.created_at))
               : ''
 
             return (

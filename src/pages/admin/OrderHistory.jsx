@@ -123,7 +123,7 @@ export default function OrderHistory() {
                     <td className="px-4 py-3 text-gray-600 capitalize">{order.payment_method}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">${order.total?.toFixed(2)}</td>
                     <td className="px-4 py-3 text-right text-gray-500">
-                      {order.created_at?.toDate ? formatDate(order.created_at.toDate(), 'MMM d, h:mm a') : '-'}
+                      {order.created_at ? formatDate(new Date(order.created_at), 'MMM d, h:mm a') : '-'}
                     </td>
                   </tr>
                   {expandedOrder === order.id && (

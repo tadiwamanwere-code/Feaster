@@ -26,7 +26,7 @@ export default function AdminLayout() {
     )
   }
 
-  if (!user || user.isAnonymous) {
+  if (!user) {
     return <Navigate to={`/admin/${slug}/login`} replace />
   }
 

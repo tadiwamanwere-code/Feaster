@@ -68,7 +68,7 @@ export default function TableManagement() {
         setTables(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_active: true }])
       } else {
         const docRef = await addTable(data)
-        setTables(prev => [...prev, { ...data, id: docRef.id, is_active: true }])
+        setTables(prev => [...prev, { ...data, is_active: true }])
       }
     } catch {
       setTables(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_active: true }])

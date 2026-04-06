@@ -90,7 +90,7 @@ export default function MenuManagement() {
     try {
       if (editItem === 'new') {
         const docRef = await addMenuItem(data)
-        setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true, sort_order: prev.length }])
+        setItems(prev => [...prev, { ...data, is_available: true, sort_order: prev.length }])
       } else {
         await updateMenuItem(editItem.id, data)
         setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))

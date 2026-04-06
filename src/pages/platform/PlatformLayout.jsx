@@ -103,7 +103,7 @@ export default function PlatformLayout() {
   }
 
   // Must be logged in with a real account (not anonymous)
-  if (!user || user.isAnonymous) return <PlatformLogin />
+  if (!user) return <PlatformLogin />
 
   // Must be an authorized admin
   if (!PLATFORM_ADMINS.includes(user.email)) {

@@ -129,12 +129,12 @@ export default function POSDashboard() {
     pending: activeOrders.filter(o => o.status === 'pending').length,
     todayRevenue: allOrders
       .filter(o => {
-        const d = o.created_at?.toDate?.()
+        const d = o.created_at ? new Date(o.created_at) : null
         return d && d.toDateString() === new Date().toDateString()
       })
       .reduce((s, o) => s + (o.total || 0), 0),
     todayOrders: allOrders.filter(o => {
-      const d = o.created_at?.toDate?.()
+      const d = o.created_at ? new Date(o.created_at) : null
       return d && d.toDateString() === new Date().toDateString()
     }).length,
   }
@@ -424,7 +424,7 @@ export default function POSDashboard() {
               filteredOrders.map(order => {
                 const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending
                 const isSelected = selectedOrder?.id === order.id
-                const timeAgo = order.created_at?.toDate ? formatDistanceToNow(order.created_at.toDate()) : ''
+                const timeAgo = order.created_at ? formatDistanceToNow(new Date(order.created_at)) : ''
 
                 return (
                   <button
@@ -485,8 +485,8 @@ export default function POSDashboard() {
 function OrderDetail({ order, onStatusUpdate }) {
   const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending
   const PaymentIcon = PAYMENT_ICONS[order.payment_method] || Banknote
-  const timeAgo = order.created_at?.toDate ? formatDistanceToNow(order.created_at.toDate()) : ''
-  const orderTime = order.created_at?.toDate ? formatDate(order.created_at.toDate(), 'h:mm a') : ''
+  const timeAgo = order.created_at ? formatDistanceToNow(new Date(order.created_at)) : ''
+  const orderTime = order.created_at ? formatDate(new Date(order.created_at), 'h:mm a') : ''
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto">
@@ -657,7 +657,7 @@ function POSMenuPanel({ restaurant }) {
     try {
       if (editItem === 'new') {
         const docRef = await addMenuItem(data)
-        setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true }])
+        setItems(prev => [...prev, { ...data, is_available: true }])
       } else {
         await updateMenuItem(editItem.id, data)
         setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))

@@ -1,55 +1,36 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { getAuthInstance } from '../lib/firebase'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const initStarted = useRef(false)
 
   useEffect(() => {
-    let unsubscribe = () => {}
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
-    // Defer Firebase Auth init — don't load on landing page or block first paint
-    const timer = requestIdleCallback?.(() => startAuth()) ?? setTimeout(() => startAuth(), 50)
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
-    function startAuth() {
-      if (initStarted.current) return
-      initStarted.current = true
-      ;(async () => {
-        try {
-          const auth = await getAuthInstance()
-          const { onAuthStateChanged } = await import('firebase/auth')
-          unsubscribe = onAuthStateChanged(auth, (u) => {
-            setUser(u)
-            setLoading(false)
-          })
-        } catch (err) {
-          console.error('Firebase Auth init failed:', err)
-          setLoading(false)
-        }
-      })()
-    }
-
-    return () => {
-      if (typeof timer === 'number') {
-        cancelIdleCallback?.(timer) ?? clearTimeout(timer)
-      }
-      unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
   const login = async (email, password) => {
-    const auth = await getAuthInstance()
-    const { signInWithEmailAndPassword } = await import('firebase/auth')
-    return signInWithEmailAndPassword(auth, email, password)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    return data
   }
 
   const logout = async () => {
-    const auth = await getAuthInstance()
-    const { signOut } = await import('firebase/auth')
-    return signOut(auth)
+    await supabase.auth.signOut()
   }
 
   return (
