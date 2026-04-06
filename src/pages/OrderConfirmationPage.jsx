@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { CheckCircle, Clock, ChefHat, Bell, Package, Home, XCircle, Timer } from 'lucide-react'
-import { subscribeToOrder, getOrder, updateOrderStatus } from '../lib/services'
+import { subscribeToOrder, updateOrderStatus } from '../lib/services'
 import StatusBadge from '../components/StatusBadge'
 
 const STATUS_STEPS = [

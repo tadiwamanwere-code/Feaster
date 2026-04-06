@@ -1,4 +1,4 @@
-import { getDb, getStorageInstance, getAuthInstance, warmUp } from './firebase'
+import { getDb, getStorageInstance, getAuthInstance } from './firebase'
 
 // ─── Firebase module cache ────────────────────────────────────
 let _firestore = null

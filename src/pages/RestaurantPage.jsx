@@ -7,7 +7,7 @@ import MenuItemCard from '../components/MenuItemCard'
 
 export default function RestaurantPage() {
   const { slug, tableNumber } = useParams()
-  const { cart, dispatch, itemCount, total } = useCart()
+  const { dispatch, itemCount, total } = useCart()
   const [restaurant, setRestaurant] = useState(null)
   const [menuItems, setMenuItems] = useState([])
   const [loading, setLoading] = useState(true)
