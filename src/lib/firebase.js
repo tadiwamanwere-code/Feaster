@@ -57,6 +57,8 @@ export function warmUp() {
   _warming = true
   // Don't await — fire and forget in the background
   getDb().catch(() => {})
+  // Also pre-warm Storage SDK so first image upload doesn't stall
+  getStorageInstance().catch(() => {})
 }
 
 // Start warming on first interaction (click, touch, scroll)

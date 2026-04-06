@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff, Image, Link2, Loader, Upload } from 'lucide-react'
-import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem } from '../../lib/services'
+import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
 
 const DEMO_MENU = [
   { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato, special sauce', price: 8.50, category: 'Mains', is_available: true, sort_order: 0 },
@@ -23,6 +23,7 @@ export default function MenuManagement() {
   const [form, setForm] = useState(EMPTY_ITEM)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const imageInputRef = useRef()
 
   useEffect(() => {
@@ -64,16 +65,22 @@ export default function MenuManagement() {
     })
   }
 
-  const handleImageUpload = (file) => {
+  const handleImageUpload = async (file) => {
     if (!file) return
     setUploading(true)
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setForm(f => ({ ...f, image_url: e.target.result }))
-      setUploading(false)
+    setUploadProgress(0)
+    try {
+      const path = `menu/${slug}/${Date.now()}.${file.name.split('.').pop()}`
+      const url = await uploadImage(path, file, {
+        forMenu: true,
+        onProgress: setUploadProgress,
+      })
+      setForm(f => ({ ...f, image_url: url }))
+    } catch (err) {
+      console.error('Image upload failed:', err)
     }
-    reader.onerror = () => setUploading(false)
-    reader.readAsDataURL(file)
+    setUploading(false)
+    setUploadProgress(0)
   }
 
   const handleSave = async () => {
@@ -253,11 +260,17 @@ export default function MenuManagement() {
                   </div>
                 ) : (
                   <div
-                    onClick={() => imageInputRef.current?.click()}
+                    onClick={() => !uploading && imageInputRef.current?.click()}
                     className="w-full h-32 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition-colors"
                   >
                     {uploading ? (
-                      <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+                      <div className="flex flex-col items-center gap-2 w-3/4">
+                        <Loader className="w-6 h-6 text-orange-500 animate-spin" />
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                        <span className="text-xs text-gray-500">{uploadProgress}%</span>
+                      </div>
                     ) : (
                       <>
                         <Upload className="w-6 h-6 text-gray-400 mb-1" />

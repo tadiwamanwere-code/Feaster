@@ -18,6 +18,7 @@ export default function RestaurantSettings() {
   const [deleting, setDeleting] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const logoInputRef = useRef()
   const coverInputRef = useRef()
 
@@ -114,10 +115,11 @@ export default function RestaurantSettings() {
 
     const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
     setUploading(true)
+    setUploadProgress(0)
 
     try {
       const path = `restaurants/${slug}/${type}_${Date.now()}.${file.name.split('.').pop()}`
-      const url = await uploadImage(path, file)
+      const url = await uploadImage(path, file, { onProgress: setUploadProgress })
       setForm(f => ({
         ...f,
         [type === 'logo' ? 'logo_url' : 'cover_photo_url']: url,
@@ -126,6 +128,7 @@ export default function RestaurantSettings() {
       console.error('Image upload failed:', err)
     }
     setUploading(false)
+    setUploadProgress(0)
   }
 
   const togglePayment = (method) => {

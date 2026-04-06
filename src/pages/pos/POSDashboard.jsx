@@ -7,7 +7,7 @@ import {
   BookOpen, Plus, Pencil, Trash2, X as XIcon, Eye, EyeOff, Upload, Image, Link2, Loader
 } from 'lucide-react'
 import QRCodeLib from 'qrcode'
-import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem } from '../../lib/services'
+import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
 import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
@@ -635,6 +635,7 @@ function POSMenuPanel({ restaurant }) {
   const [form, setForm] = useState({ name: '', description: '', price: '', category: '', image_url: '' })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const imageRef = useRef()
 
   useEffect(() => {
@@ -654,13 +655,22 @@ function POSMenuPanel({ restaurant }) {
 
   const categories = [...new Set(items.map(i => i.category))]
 
-  const handleImageUpload = (file) => {
+  const handleImageUpload = async (file) => {
     if (!file) return
     setUploading(true)
-    const reader = new FileReader()
-    reader.onload = (e) => { setForm(f => ({ ...f, image_url: e.target.result })); setUploading(false) }
-    reader.onerror = () => setUploading(false)
-    reader.readAsDataURL(file)
+    setUploadProgress(0)
+    try {
+      const path = `menu/${restaurant.slug || restaurant.id}/${Date.now()}.${file.name.split('.').pop()}`
+      const url = await uploadImage(path, file, {
+        forMenu: true,
+        onProgress: setUploadProgress,
+      })
+      setForm(f => ({ ...f, image_url: url }))
+    } catch (err) {
+      console.error('Image upload failed:', err)
+    }
+    setUploading(false)
+    setUploadProgress(0)
   }
 
   const handleSave = async () => {
@@ -779,8 +789,16 @@ function POSMenuPanel({ restaurant }) {
                     <button onClick={() => setForm(f => ({ ...f, image_url: '' }))} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center"><XIcon className="w-4 h-4" /></button>
                   </div>
                 ) : (
-                  <div onClick={() => imageRef.current?.click()} className="w-full h-28 rounded-xl border-2 border-dashed border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
-                    {uploading ? <Loader className="w-6 h-6 text-gray-500 animate-spin" /> : <><Upload className="w-6 h-6 text-gray-500 mb-1" /><span className="text-sm text-gray-500">Upload photo</span></>}
+                  <div onClick={() => !uploading && imageRef.current?.click()} className="w-full h-28 rounded-xl border-2 border-dashed border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 transition-colors">
+                    {uploading ? (
+                      <div className="flex flex-col items-center gap-2 w-3/4">
+                        <Loader className="w-6 h-6 text-orange-500 animate-spin" />
+                        <div className="w-full bg-gray-700 rounded-full h-1.5">
+                          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                        <span className="text-xs text-gray-400">{uploadProgress}%</span>
+                      </div>
+                    ) : <><Upload className="w-6 h-6 text-gray-500 mb-1" /><span className="text-sm text-gray-500">Upload photo</span></>}
                   </div>
                 )}
                 <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e.target.files[0])} />

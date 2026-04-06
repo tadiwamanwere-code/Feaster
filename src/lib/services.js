@@ -290,45 +290,89 @@ export async function deleteRestaurant(id) {
 
 // ─── Image Uploads ─────────────────────────────────────────────
 
-// Compress image before upload — resizes and reduces quality
-function compressImage(file, maxWidth = 1200, quality = 0.8) {
-  return new Promise((resolve) => {
-    // If file is already small (<200KB) or not an image, skip compression
-    if (file.size < 200_000 || !file.type.startsWith('image/')) {
-      return resolve(file)
-    }
+// Best-in-class client-side compression: WebP with JPEG fallback,
+// aggressive resize for menu thumbnails, OffscreenCanvas when available
+function compressImage(file, { maxWidth = 800, quality = 0.7, forMenu = false } = {}) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) return resolve(file)
+
+    // Menu images are thumbnails — compress harder
+    if (forMenu) { maxWidth = 600; quality = 0.65 }
 
     const img = new Image()
-    const canvas = document.createElement('canvas')
-    const reader = new FileReader()
+    const url = URL.createObjectURL(file)
 
-    reader.onload = (e) => {
-      img.onload = () => {
-        let { width, height } = img
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width)
-          width = maxWidth
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width)
+        width = maxWidth
+      }
+
+      // Use OffscreenCanvas if available (doesn't block main thread)
+      const canvas = typeof OffscreenCanvas !== 'undefined'
+        ? new OffscreenCanvas(width, height)
+        : document.createElement('canvas')
+      if (canvas.width !== undefined) { canvas.width = width; canvas.height = height }
+
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+
+      // Try WebP first (much smaller), fall back to JPEG
+      const tryFormat = (format) => {
+        if (canvas.convertToBlob) {
+          return canvas.convertToBlob({ type: format, quality })
         }
-        canvas.width = width
-        canvas.height = height
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
-        canvas.toBlob(
-          (blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
-          'image/jpeg',
-          quality
+        return new Promise(res =>
+          canvas.toBlob(blob => res(blob), format, quality)
         )
       }
-      img.src = e.target.result
+
+      tryFormat('image/webp').then(blob => {
+        // Some browsers return a very large webp or null — fall back to jpeg
+        if (!blob || blob.size > file.size) {
+          return tryFormat('image/jpeg')
+        }
+        return blob
+      }).then(blob => {
+        const ext = blob.type === 'image/webp' ? '.webp' : '.jpg'
+        const name = file.name.replace(/\.[^.]+$/, ext)
+        resolve(new File([blob], name, { type: blob.type }))
+      }).catch(() => resolve(file)) // on any error, upload original
     }
-    reader.readAsDataURL(file)
+
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
   })
 }
 
-export async function uploadImage(path, file) {
-  const compressed = await compressImage(file)
+// Resumable upload with progress callback
+// onProgress receives a value 0-100
+export async function uploadImage(path, file, { onProgress, forMenu = false } = {}) {
+  const compressed = await compressImage(file, { forMenu })
   const storage = await getStorageInstance()
-  const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
+  const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage')
   const storageRef = ref(storage, path)
-  await uploadBytes(storageRef, compressed)
-  return getDownloadURL(storageRef)
+
+  return new Promise((resolve, reject) => {
+    const task = uploadBytesResumable(storageRef, compressed, {
+      contentType: compressed.type,
+      cacheControl: 'public, max-age=31536000', // CDN cache 1 year
+    })
+
+    task.on('state_changed',
+      (snap) => {
+        if (onProgress) {
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
+          onProgress(pct)
+        }
+      },
+      (err) => reject(err),
+      async () => {
+        const url = await getDownloadURL(task.snapshot.ref)
+        resolve(url)
+      }
+    )
+  })
 }

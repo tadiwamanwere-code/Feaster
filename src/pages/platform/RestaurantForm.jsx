@@ -32,6 +32,7 @@ export default function RestaurantForm() {
   const [error, setError] = useState('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const logoInputRef = useRef()
   const coverInputRef = useRef()
 
@@ -78,10 +79,11 @@ export default function RestaurantForm() {
     const setUploading = type === 'logo' ? setUploadingLogo : setUploadingCover
     setUploading(true)
     setError('')
+    setUploadProgress(0)
 
     try {
       const path = `restaurants/${form.slug || Date.now()}/${type}_${Date.now()}.${file.name.split('.').pop()}`
-      const url = await uploadImage(path, file)
+      const url = await uploadImage(path, file, { onProgress: setUploadProgress })
       setForm(f => ({
         ...f,
         [type === 'logo' ? 'logo_url' : 'cover_photo_url']: url,
@@ -91,6 +93,7 @@ export default function RestaurantForm() {
       setError(`Failed to upload ${type} image. Please try again.`)
     }
     setUploading(false)
+    setUploadProgress(0)
   }
 
   const togglePayment = (method) => {
