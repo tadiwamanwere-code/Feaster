@@ -1,4 +1,4 @@
-import { getDb, getStorageInstance, warmUp } from './firebase'
+import { getDb, getStorageInstance, getAuthInstance, warmUp } from './firebase'
 
 // ─── Firebase module cache ────────────────────────────────────
 let _firestore = null
@@ -344,8 +344,19 @@ function compressImage(file, { maxWidth = 800, quality = 0.7, forMenu = false } 
   })
 }
 
+// Ensure we have a Firebase Auth user — sign in anonymously if needed
+// so Firebase Storage rules (request.auth != null) are satisfied
+async function ensureAuth() {
+  const auth = await getAuthInstance()
+  if (!auth.currentUser) {
+    const { signInAnonymously } = await import('firebase/auth')
+    await signInAnonymously(auth)
+  }
+}
+
 // Resumable upload with progress callback — onProgress receives 0-100
 export async function uploadImage(path, file, { onProgress, forMenu = false } = {}) {
+  await ensureAuth()
   const compressed = await compressImage(file, { forMenu })
   const storage = await getStorageInstance()
   const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage')

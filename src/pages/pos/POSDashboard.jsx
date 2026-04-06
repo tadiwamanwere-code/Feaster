@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import QRCodeLib from 'qrcode'
 import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
-import { getAuthInstance } from '../../lib/firebase'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
 import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
@@ -661,15 +660,6 @@ function POSMenuPanel({ restaurant }) {
   const handleImageUpload = async (file) => {
     if (!file) return
     setUploadError('')
-
-    try {
-      const auth = await getAuthInstance()
-      if (!auth.currentUser) {
-        setUploadError('Please log in to upload images')
-        return
-      }
-    } catch {}
-
     setUploading(true)
     setUploadProgress(0)
     try {

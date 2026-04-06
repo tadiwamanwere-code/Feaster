@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff, Image, Link2, Loader, Upload } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
-import { getAuthInstance } from '../../lib/firebase'
 
 const DEMO_MENU = [
   { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato, special sauce', price: 8.50, category: 'Mains', is_available: true, sort_order: 0 },
@@ -71,18 +70,6 @@ export default function MenuManagement() {
   const handleImageUpload = async (file) => {
     if (!file) return
     setUploadError('')
-
-    // Check auth first — Firebase Storage requires login
-    try {
-      const auth = await getAuthInstance()
-      if (!auth.currentUser) {
-        setUploadError('Please log in to upload images')
-        return
-      }
-    } catch {
-      // Auth not available — allow attempt anyway
-    }
-
     setUploading(true)
     setUploadProgress(0)
     try {
