@@ -21,10 +21,14 @@ export default function SystemLogin() {
   const handlePinSubmit = (e) => {
     e.preventDefault()
     const rest = restaurants.find(r => r.slug === selectedSlug)
-    if (pin === '1234' || pin === rest?.kitchen_pin) {
+    if (!rest?.kitchen_pin) {
+      setError('No PIN configured. Set one in restaurant settings.')
+      return
+    }
+    if (pin === rest.kitchen_pin) {
       navigate(`/pos/${selectedSlug}`)
     } else {
-      setError('Invalid PIN. Contact your Feaster admin.')
+      setError('Invalid PIN. Contact your restaurant admin.')
     }
   }
 
@@ -127,7 +131,7 @@ export default function SystemLogin() {
                 </button>
               </form>
             </div>
-            <p className="text-xs text-gray-600 text-center mt-3">Default PIN: 1234</p>
+            <p className="text-xs text-gray-600 text-center mt-3">Enter the PIN set in your restaurant settings</p>
           </div>
         )}
 

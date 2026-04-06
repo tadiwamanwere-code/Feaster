@@ -36,11 +36,18 @@ export default function KitchenDisplay() {
   const prevOrderCount = useRef(0)
   const audioRef = useRef(null)
 
-  // Simple PIN auth (in production, store hashed PIN in restaurant doc)
+  const [pinError, setPinError] = useState('')
+
   const handlePinSubmit = (e) => {
     e.preventDefault()
-    if (pin === '1234' || pin === restaurant?.kitchen_pin) {
+    if (!restaurant?.kitchen_pin) {
+      setPinError('No kitchen PIN configured. Set one in restaurant settings.')
+      return
+    }
+    if (pin === restaurant.kitchen_pin) {
       setAuthenticated(true)
+    } else {
+      setPinError('Incorrect PIN')
     }
   }
 
@@ -48,9 +55,9 @@ export default function KitchenDisplay() {
     async function load() {
       try {
         const rest = await getRestaurantBySlug(slug)
-        setRestaurant(rest || { id: 'demo', slug, name: slug, kitchen_pin: '1234' })
-      } catch {
-        setRestaurant({ id: 'demo', slug, name: slug, kitchen_pin: '1234' })
+        if (rest) setRestaurant(rest)
+      } catch (err) {
+        console.error('Failed to load restaurant:', err)
       }
       setLoading(false)
     }
@@ -59,55 +66,6 @@ export default function KitchenDisplay() {
 
   useEffect(() => {
     if (!restaurant?.id || !authenticated) return
-
-    // Demo orders for testing
-    if (restaurant.id === 'demo') {
-      setOrders([
-        {
-          id: 'demo-k1',
-          customer_name: 'Tafadzwa',
-          table_id: '5',
-          order_type: 'dine_in',
-          status: 'pending',
-          items: [
-            { name: 'Classic Burger', quantity: 2, price: 8.50, notes: 'No onions' },
-            { name: 'Fresh Juice', quantity: 2, price: 3.00, notes: '' },
-          ],
-          total: 23.00,
-          payment_method: 'cash',
-          created_at: { toDate: () => new Date(Date.now() - 120000) },
-        },
-        {
-          id: 'demo-k2',
-          customer_name: 'Chiedza',
-          table_id: null,
-          order_type: 'takeout',
-          status: 'confirmed',
-          items: [
-            { name: 'Fish & Chips', quantity: 1, price: 12.00, notes: '' },
-            { name: 'Caesar Salad', quantity: 1, price: 7.50, notes: 'Extra dressing' },
-          ],
-          total: 19.50,
-          payment_method: 'ecocash',
-          created_at: { toDate: () => new Date(Date.now() - 300000) },
-        },
-        {
-          id: 'demo-k3',
-          customer_name: 'Kudakwashe',
-          table_id: '12',
-          order_type: 'dine_in',
-          status: 'preparing',
-          items: [
-            { name: 'Grilled T-Bone Steak', quantity: 1, price: 18.00, notes: 'Medium rare' },
-            { name: 'Castle Lager', quantity: 2, price: 3.50, notes: '' },
-          ],
-          total: 25.00,
-          payment_method: 'card',
-          created_at: { toDate: () => new Date(Date.now() - 600000) },
-        },
-      ])
-      return
-    }
 
     const unsubscribe = subscribeToKitchenOrders(restaurant.id, (ordersList) => {
       if (ordersList.length > prevOrderCount.current) {
@@ -125,13 +83,6 @@ export default function KitchenDisplay() {
     const nextStatus = NEXT_STATUS[currentStatus]
     if (!nextStatus) return
 
-    // Demo mode
-    if (orderId.startsWith('demo-')) {
-      setOrders(prev => prev.map(o =>
-        o.id === orderId ? { ...o, status: nextStatus } : o
-      ).filter(o => o.status !== 'completed'))
-      return
-    }
 
     try {
       await updateOrderStatus(orderId, nextStatus)
@@ -180,7 +131,7 @@ export default function KitchenDisplay() {
             >
               Enter Kitchen
             </button>
-            <p className="text-gray-500 text-xs text-center mt-3">Default PIN: 1234</p>
+            {pinError && <p className="text-red-400 text-xs text-center mt-3">{pinError}</p>}
           </form>
         </div>
       </div>

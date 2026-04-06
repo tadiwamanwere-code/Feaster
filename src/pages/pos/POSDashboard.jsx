@@ -46,25 +46,23 @@ export default function POSDashboard() {
     async function load() {
       try {
         const rest = await getRestaurantBySlug(slug)
-        setRestaurant(rest || { id: 'demo', slug, name: slug })
+        if (!rest) { setLoading(false); return }
+        setRestaurant(rest)
 
-        if (rest) {
-          // Fetch orders and tables in parallel — not one after another
-          const [orders, t] = await Promise.all([
-            getOrdersByRestaurant(rest.id),
-            getTables(rest.id),
-          ])
-          setAllOrders(orders)
-          t.sort((a, b) => {
-            const na = parseInt(a.table_number, 10)
-            const nb = parseInt(b.table_number, 10)
-            if (!isNaN(na) && !isNaN(nb)) return na - nb
-            return a.table_number.localeCompare(b.table_number)
-          })
-          setTables(t)
-        }
-      } catch {
-        setRestaurant({ id: 'demo', slug, name: slug })
+        const [orders, t] = await Promise.all([
+          getOrdersByRestaurant(rest.id),
+          getTables(rest.id),
+        ])
+        setAllOrders(orders)
+        t.sort((a, b) => {
+          const na = parseInt(a.table_number, 10)
+          const nb = parseInt(b.table_number, 10)
+          if (!isNaN(na) && !isNaN(nb)) return na - nb
+          return a.table_number.localeCompare(b.table_number)
+        })
+        setTables(t)
+      } catch (err) {
+        console.error('Failed to load POS data:', err)
       }
       setLoading(false)
     }
@@ -105,14 +103,6 @@ export default function POSDashboard() {
   useEffect(() => {
     if (!restaurant?.id) return
 
-    if (restaurant.id === 'demo') {
-      setActiveOrders(DEMO_ORDERS)
-      setAllOrders(DEMO_ORDERS)
-      const demoTables = [1,2,3,4,5,6].map(n => ({ id: `dt${n}`, table_number: String(n) }))
-      setTables(demoTables)
-      return
-    }
-
     const unsubscribe = subscribeToKitchenOrders(restaurant.id, (orders) => {
       if (orders.length > prevCount.current) {
         try { audioRef.current?.play() } catch {}
@@ -126,17 +116,6 @@ export default function POSDashboard() {
   const handleStatusUpdate = async (orderId, currentStatus) => {
     const next = NEXT_STATUS[currentStatus]
     if (!next) return
-
-    if (orderId.startsWith('demo-')) {
-      if (next === 'completed') {
-        setActiveOrders(prev => prev.filter(o => o.id !== orderId))
-      } else {
-        setActiveOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: next } : o))
-      }
-      setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: next } : o))
-      if (selectedOrder?.id === orderId) setSelectedOrder(prev => ({ ...prev, status: next }))
-      return
-    }
 
     try {
       await updateOrderStatus(orderId, next)
@@ -639,14 +618,7 @@ function POSMenuPanel({ restaurant }) {
   const imageRef = useRef()
 
   useEffect(() => {
-    if (!restaurant?.id || restaurant.id === 'demo') {
-      setItems([
-        { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato', price: 8.50, category: 'Mains', is_available: true },
-        { id: 'm2', name: 'Chicken Wings (6pc)', description: 'Crispy fried wings', price: 6.00, category: 'Starters', is_available: true },
-      ])
-      setLoading(false)
-      return
-    }
+    if (!restaurant?.id) { setLoading(false); return }
     getMenuItems(restaurant.id)
       .then(data => setItems(data))
       .catch(() => setItems([]))
@@ -684,19 +656,14 @@ function POSMenuPanel({ restaurant }) {
 
     try {
       if (editItem === 'new') {
-        if (restaurant.id === 'demo') {
-          setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true }])
-        } else {
-          const docRef = await addMenuItem(data)
-          setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true }])
-        }
+        const docRef = await addMenuItem(data)
+        setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true }])
       } else {
-        if (!editItem.id.startsWith('m') && !editItem.id.startsWith('new')) await updateMenuItem(editItem.id, data)
+        await updateMenuItem(editItem.id, data)
         setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
       }
-    } catch {
-      if (editItem === 'new') setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true }])
-      else setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
+    } catch (err) {
+      console.error('Save failed:', err)
     }
     setEditItem(null)
     setSaving(false)
@@ -704,14 +671,22 @@ function POSMenuPanel({ restaurant }) {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this menu item?')) return
-    try { if (!id.startsWith('m') && !id.startsWith('new')) await deleteMenuItem(id) } catch {}
-    setItems(prev => prev.filter(i => i.id !== id))
+    try {
+      await deleteMenuItem(id)
+      setItems(prev => prev.filter(i => i.id !== id))
+    } catch (err) {
+      console.error('Delete failed:', err)
+    }
   }
 
   const toggleAvail = async (item) => {
     const v = !item.is_available
-    try { if (!item.id.startsWith('m') && !item.id.startsWith('new')) await updateMenuItem(item.id, { is_available: v }) } catch {}
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_available: v } : i))
+    try {
+      await updateMenuItem(item.id, { is_available: v })
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_available: v } : i))
+    } catch (err) {
+      console.error('Toggle failed:', err)
+    }
   }
 
   if (loading) return <div className="flex-1 flex items-center justify-center"><Loader className="w-8 h-8 text-orange-400 animate-spin" /></div>
@@ -843,48 +818,3 @@ function POSMenuPanel({ restaurant }) {
     </div>
   )
 }
-
-// Demo orders for testing without Firebase
-const DEMO_ORDERS = [
-  {
-    id: 'demo-pos-1', customer_name: 'Tafadzwa M.', customer_phone: '0771234567',
-    table_id: '5', order_type: 'dine_in', status: 'pending', payment_method: 'cash',
-    cash_amount: 30.00, total: 23.00, notes: 'Extra napkins please',
-    items: [
-      { name: 'Classic Burger', quantity: 2, price: 8.50, notes: 'No onions on one' },
-      { name: 'Fresh Juice', quantity: 2, price: 3.00, notes: 'Mango' },
-    ],
-    created_at: { toDate: () => new Date(Date.now() - 60000) },
-  },
-  {
-    id: 'demo-pos-2', customer_name: 'Chiedza N.', customer_phone: '0782345678',
-    table_id: null, order_type: 'takeout', status: 'confirmed', payment_method: 'ecocash',
-    total: 19.50, notes: '',
-    items: [
-      { name: 'Fish & Chips', quantity: 1, price: 12.00, notes: '' },
-      { name: 'Caesar Salad', quantity: 1, price: 7.50, notes: 'Extra dressing' },
-    ],
-    created_at: { toDate: () => new Date(Date.now() - 300000) },
-  },
-  {
-    id: 'demo-pos-3', customer_name: 'Kudakwashe P.', customer_phone: '',
-    table_id: '12', order_type: 'dine_in', status: 'preparing', payment_method: 'card',
-    total: 25.00,
-    items: [
-      { name: 'Grilled T-Bone Steak', quantity: 1, price: 18.00, notes: 'Medium rare' },
-      { name: 'Castle Lager', quantity: 2, price: 3.50, notes: '' },
-    ],
-    created_at: { toDate: () => new Date(Date.now() - 600000) },
-  },
-  {
-    id: 'demo-pos-4', customer_name: 'Rudo S.', customer_phone: '0713456789',
-    table_id: '3', order_type: 'dine_in', status: 'ready', payment_method: 'innbucks',
-    total: 15.00,
-    items: [
-      { name: 'Chicken Wings (6pc)', quantity: 1, price: 6.00, notes: '' },
-      { name: 'Nachos', quantity: 1, price: 7.00, notes: 'Extra cheese' },
-      { name: 'Coca-Cola', quantity: 1, price: 2.00, notes: '' },
-    ],
-    created_at: { toDate: () => new Date(Date.now() - 900000) },
-  },
-]

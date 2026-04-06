@@ -3,15 +3,6 @@ import { useParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff, Image, Link2, Loader, Upload } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
 
-const DEMO_MENU = [
-  { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato, special sauce', price: 8.50, category: 'Mains', is_available: true, sort_order: 0 },
-  { id: 'm2', name: 'Chicken Wings (6pc)', description: 'Crispy fried wings with peri-peri sauce', price: 6.00, category: 'Starters', is_available: true, sort_order: 1 },
-  { id: 'm3', name: 'Fish & Chips', description: 'Beer battered hake with hand-cut chips', price: 12.00, category: 'Mains', is_available: true, sort_order: 2 },
-  { id: 'm4', name: 'Coca-Cola', description: '330ml can', price: 2.00, category: 'Drinks', is_available: true, sort_order: 3 },
-  { id: 'm5', name: 'Castle Lager', description: '500ml bottle', price: 3.50, category: 'Drinks', is_available: true, sort_order: 4 },
-  { id: 'm6', name: 'Chocolate Brownie', description: 'Warm brownie with vanilla ice cream', price: 5.50, category: 'Desserts', is_available: true, sort_order: 5 },
-]
-
 const EMPTY_ITEM = { name: '', description: '', price: '', category: '', image_url: '' }
 
 export default function MenuManagement() {
@@ -32,15 +23,11 @@ export default function MenuManagement() {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
           setRestaurant(rest)
-          const [menuItems] = await Promise.all([getMenuItems(rest.id)])
-          setItems(menuItems.length > 0 ? menuItems : DEMO_MENU)
-        } else {
-          setRestaurant({ id: 'demo', slug })
-          setItems(DEMO_MENU)
+          const menuItems = await getMenuItems(rest.id)
+          setItems(menuItems)
         }
-      } catch {
-        setRestaurant({ id: 'demo', slug })
-        setItems(DEMO_MENU)
+      } catch (err) {
+        console.error('Failed to load menu:', err)
       }
       setLoading(false)
     }
@@ -102,25 +89,14 @@ export default function MenuManagement() {
 
     try {
       if (editItem === 'new') {
-        if (restaurant.id === 'demo') {
-          setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true, sort_order: prev.length }])
-        } else {
-          const docRef = await addMenuItem(data)
-          setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true, sort_order: prev.length }])
-        }
+        const docRef = await addMenuItem(data)
+        setItems(prev => [...prev, { ...data, id: docRef.id, is_available: true, sort_order: prev.length }])
       } else {
-        if (!editItem.id.startsWith('demo') && !editItem.id.startsWith('m') && !editItem.id.startsWith('new')) {
-          await updateMenuItem(editItem.id, data)
-        }
+        await updateMenuItem(editItem.id, data)
         setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
       }
     } catch (err) {
       console.error('Save failed:', err)
-      if (editItem === 'new') {
-        setItems(prev => [...prev, { ...data, id: 'new-' + Date.now(), is_available: true, sort_order: prev.length }])
-      } else {
-        setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...data } : i))
-      }
     }
 
     setEditItem(null)
@@ -130,21 +106,21 @@ export default function MenuManagement() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this menu item?')) return
     try {
-      if (!id.startsWith('demo') && !id.startsWith('m') && !id.startsWith('new')) {
-        await deleteMenuItem(id)
-      }
-    } catch {}
-    setItems(prev => prev.filter(i => i.id !== id))
+      await deleteMenuItem(id)
+      setItems(prev => prev.filter(i => i.id !== id))
+    } catch (err) {
+      console.error('Delete failed:', err)
+    }
   }
 
   const toggleAvailability = async (item) => {
     const newVal = !item.is_available
     try {
-      if (!item.id.startsWith('demo') && !item.id.startsWith('m') && !item.id.startsWith('new')) {
-        await updateMenuItem(item.id, { is_available: newVal })
-      }
-    } catch {}
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_available: newVal } : i))
+      await updateMenuItem(item.id, { is_available: newVal })
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_available: newVal } : i))
+    } catch (err) {
+      console.error('Toggle failed:', err)
+    }
   }
 
   if (loading) {

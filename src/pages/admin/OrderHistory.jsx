@@ -5,13 +5,6 @@ import { getRestaurantBySlug, getOrdersByRestaurant } from '../../lib/services'
 import StatusBadge from '../../components/StatusBadge'
 import { formatDate } from '../../lib/dates'
 
-const DEMO_ORDERS = [
-  { id: 'o1', customer_name: 'Tafadzwa M.', customer_phone: '0771234567', order_type: 'dine_in', table_id: '5', status: 'completed', total: 23.00, payment_method: 'cash', items: [{ name: 'Classic Burger', quantity: 2, price: 8.50 }, { name: 'Fresh Juice', quantity: 2, price: 3.00 }], created_at: { toDate: () => new Date() } },
-  { id: 'o2', customer_name: 'Chiedza N.', customer_phone: '0782345678', order_type: 'takeout', table_id: null, status: 'completed', total: 19.50, payment_method: 'ecocash', items: [{ name: 'Fish & Chips', quantity: 1, price: 12.00 }, { name: 'Caesar Salad', quantity: 1, price: 7.50 }], created_at: { toDate: () => new Date(Date.now() - 3600000) } },
-  { id: 'o3', customer_name: 'Kudakwashe P.', customer_phone: '', order_type: 'dine_in', table_id: '12', status: 'preparing', total: 25.00, payment_method: 'card', items: [{ name: 'T-Bone Steak', quantity: 1, price: 18.00 }, { name: 'Castle Lager', quantity: 2, price: 3.50 }], created_at: { toDate: () => new Date(Date.now() - 7200000) } },
-  { id: 'o4', customer_name: 'Rudo S.', customer_phone: '0713456789', order_type: 'pre_order', table_id: null, status: 'pending', total: 35.00, payment_method: 'innbucks', items: [{ name: 'Mozambican Prawns', quantity: 1, price: 22.00 }, { name: 'Chocolate Brownie', quantity: 2, price: 5.50 }, { name: 'Coca-Cola', quantity: 1, price: 2.00 }], created_at: { toDate: () => new Date(Date.now() - 86400000) } },
-]
-
 export default function OrderHistory() {
   const { slug } = useParams()
   const [orders, setOrders] = useState([])
@@ -27,12 +20,10 @@ export default function OrderHistory() {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
           const allOrders = await getOrdersByRestaurant(rest.id)
-          setOrders(allOrders.length > 0 ? allOrders : DEMO_ORDERS)
-        } else {
-          setOrders(DEMO_ORDERS)
+          setOrders(allOrders)
         }
-      } catch {
-        setOrders(DEMO_ORDERS)
+      } catch (err) {
+        console.error('Failed to load orders:', err)
       }
       setLoading(false)
     }

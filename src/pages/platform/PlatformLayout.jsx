@@ -3,7 +3,10 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Building2, PlusCircle, LogOut, Shield, Mail, Lock } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-const PLATFORM_ADMINS = ['admin@feaster.app', 'tadiwamanwere@gmail.com']
+const PLATFORM_ADMINS = (import.meta.env.VITE_PLATFORM_ADMINS || '')
+  .split(',')
+  .map(e => e.trim())
+  .filter(Boolean)
 
 function PlatformLogin() {
   const { login } = useAuth()

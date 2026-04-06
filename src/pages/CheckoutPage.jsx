@@ -81,10 +81,7 @@ export default function CheckoutPage() {
       navigate(`/order/${docRef.id}`)
     } catch (err) {
       console.error('Order failed:', err)
-      // For demo mode, create a fake order ID
-      const fakeId = 'demo-' + Date.now()
-      dispatch({ type: 'CLEAR_CART' })
-      navigate(`/order/${fakeId}`)
+      setError('Failed to place order. Please check your connection and try again.')
     } finally {
       setSubmitting(false)
     }

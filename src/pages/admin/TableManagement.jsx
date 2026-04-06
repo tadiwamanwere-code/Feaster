@@ -5,15 +5,6 @@ import QRCode from 'qrcode'
 import { getRestaurantBySlug, getTables, addTable, deleteTable } from '../../lib/services'
 import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
-const DEMO_TABLES = [
-  { id: 't1', table_number: '1', is_active: true },
-  { id: 't2', table_number: '2', is_active: true },
-  { id: 't3', table_number: '3', is_active: true },
-  { id: 't4', table_number: '4', is_active: true },
-  { id: 't5', table_number: '5', is_active: true },
-  { id: 't6', table_number: 'Bar 1', is_active: true },
-]
-
 export default function TableManagement() {
   const { slug } = useParams()
   const [restaurant, setRestaurant] = useState(null)
@@ -32,15 +23,11 @@ export default function TableManagement() {
         const rest = await getRestaurantBySlug(slug)
         if (rest) {
           setRestaurant(rest)
-          const [t] = await Promise.all([getTables(rest.id)])
-          setTables(t.length > 0 ? t : DEMO_TABLES)
-        } else {
-          setRestaurant({ id: 'demo', slug, name: slug.charAt(0).toUpperCase() + slug.slice(1) })
-          setTables(DEMO_TABLES)
+          const t = await getTables(rest.id)
+          setTables(t)
         }
-      } catch {
-        setRestaurant({ id: 'demo', slug, name: slug.charAt(0).toUpperCase() + slug.slice(1) })
-        setTables(DEMO_TABLES)
+      } catch (err) {
+        console.error('Failed to load tables:', err)
       }
       setLoading(false)
     }

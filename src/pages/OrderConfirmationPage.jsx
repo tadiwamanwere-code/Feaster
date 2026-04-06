@@ -27,47 +27,15 @@ export default function OrderConfirmationPage() {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [cancelTimeLeft, setCancelTimeLeft] = useState(0)
-  const isDemo = orderId?.startsWith('demo-')
 
   useEffect(() => {
-    if (isDemo) {
-      setOrder({
-        id: orderId,
-        customer_name: 'Demo Customer',
-        items: [
-          { name: 'Classic Burger', quantity: 2, price: 8.50 },
-          { name: 'Fresh Juice', quantity: 1, price: 3.00 },
-        ],
-        order_type: 'dine_in',
-        status: 'pending',
-        total: 20.00,
-        payment_method: 'cash',
-        created_at: { toDate: () => new Date() },
-      })
-      setLoading(false)
-      return
-    }
-
     const unsubscribe = subscribeToOrder(orderId, (orderData) => {
       setOrder(orderData)
       setLoading(false)
     })
 
     return unsubscribe
-  }, [orderId, isDemo])
-
-  // Simulate status changes in demo mode
-  useEffect(() => {
-    if (!isDemo || !order) return
-    const statuses = ['pending', 'confirmed', 'preparing', 'ready']
-    const currentIdx = statuses.indexOf(order.status)
-    if (currentIdx < statuses.length - 1) {
-      const timer = setTimeout(() => {
-        setOrder(prev => ({ ...prev, status: statuses[currentIdx + 1] }))
-      }, 5000)
-      return () => clearTimeout(timer)
-    }
-  }, [isDemo, order?.status])
+  }, [orderId])
 
   // Cancellation countdown timer
   useEffect(() => {
@@ -93,13 +61,9 @@ export default function OrderConfirmationPage() {
     if (!canCancel) return
     setCancelling(true)
     try {
-      if (isDemo) {
-        setOrder(prev => ({ ...prev, status: 'cancelled' }))
-      } else {
-        await updateOrderStatus(orderId, 'cancelled')
-      }
-    } catch {
-      // Silently fail — order may have already been confirmed
+      await updateOrderStatus(orderId, 'cancelled')
+    } catch (err) {
+      console.error('Cancel failed:', err)
     }
     setCancelling(false)
   }

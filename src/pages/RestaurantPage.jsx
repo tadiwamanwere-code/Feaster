@@ -5,20 +5,6 @@ import { getRestaurantBySlug, getMenuItems } from '../lib/services'
 import { useCart } from '../context/CartContext'
 import MenuItemCard from '../components/MenuItemCard'
 
-// Demo menu used when Firebase is not configured
-const DEMO_MENU = [
-  { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato, special sauce', price: 8.50, category: 'Mains', is_available: true, sort_order: 0 },
-  { id: 'm2', name: 'Chicken Wings (6pc)', description: 'Crispy fried wings with peri-peri sauce', price: 6.00, category: 'Starters', is_available: true, sort_order: 1 },
-  { id: 'm3', name: 'Fish & Chips', description: 'Beer battered hake with hand-cut chips', price: 12.00, category: 'Mains', is_available: true, sort_order: 2 },
-  { id: 'm4', name: 'Caesar Salad', description: 'Romaine lettuce, croutons, parmesan, caesar dressing', price: 7.50, category: 'Starters', is_available: true, sort_order: 3 },
-  { id: 'm5', name: 'Grilled T-Bone Steak', description: '400g T-bone with mushroom sauce and sides', price: 18.00, category: 'Mains', is_available: true, sort_order: 4 },
-  { id: 'm6', name: 'Mozambican Prawns', description: 'Grilled prawns in garlic butter and peri-peri', price: 22.00, category: 'Mains', is_available: true, sort_order: 5 },
-  { id: 'm7', name: 'Coca-Cola', description: '330ml can', price: 2.00, category: 'Drinks', is_available: true, sort_order: 6 },
-  { id: 'm8', name: 'Castle Lager', description: '500ml bottle', price: 3.50, category: 'Drinks', is_available: true, sort_order: 7 },
-  { id: 'm9', name: 'Fresh Juice', description: 'Orange, mango or pineapple', price: 3.00, category: 'Drinks', is_available: true, sort_order: 8 },
-  { id: 'm10', name: 'Chocolate Brownie', description: 'Warm brownie with vanilla ice cream', price: 5.50, category: 'Desserts', is_available: true, sort_order: 9 },
-]
-
 export default function RestaurantPage() {
   const { slug, tableNumber } = useParams()
   const { cart, dispatch, itemCount, total } = useCart()
@@ -34,31 +20,11 @@ export default function RestaurantPage() {
         if (rest) {
           setRestaurant(rest)
           dispatch({ type: 'SET_RESTAURANT', restaurantId: rest.id, slug: rest.slug })
-          // Fetch menu in parallel — don't wait for restaurant state to settle
           const items = await getMenuItems(rest.id)
-          setMenuItems(items.length > 0 ? items : DEMO_MENU)
-        } else {
-          // Use demo data
-          setRestaurant({
-            id: 'demo',
-            slug,
-            name: slug.charAt(0).toUpperCase() + slug.slice(1),
-            cuisine_type: 'Restaurant',
-            city: 'Harare',
-          })
-          dispatch({ type: 'SET_RESTAURANT', restaurantId: 'demo', slug })
-          setMenuItems(DEMO_MENU)
+          setMenuItems(items)
         }
-      } catch {
-        setRestaurant({
-          id: 'demo',
-          slug,
-          name: slug.charAt(0).toUpperCase() + slug.slice(1),
-          cuisine_type: 'Restaurant',
-          city: 'Harare',
-        })
-        dispatch({ type: 'SET_RESTAURANT', restaurantId: 'demo', slug })
-        setMenuItems(DEMO_MENU)
+      } catch (err) {
+        console.error('Failed to load restaurant:', err)
       }
       setLoading(false)
     }

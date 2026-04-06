@@ -25,8 +25,8 @@ export function AuthProvider({ children }) {
             setUser(u)
             setLoading(false)
           })
-        } catch {
-          // Firebase not configured — demo mode
+        } catch (err) {
+          console.error('Firebase Auth init failed:', err)
           setLoading(false)
         }
       })()

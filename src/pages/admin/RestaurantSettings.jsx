@@ -32,7 +32,7 @@ export default function RestaurantSettings() {
     cover_photo_url: '',
     opening_hours: {},
     payment_methods: ['cash'],
-    kitchen_pin: '1234',
+    kitchen_pin: '',
     is_active: true,
   })
 
@@ -52,15 +52,12 @@ export default function RestaurantSettings() {
             cover_photo_url: rest.cover_photo_url || '',
             opening_hours: rest.opening_hours || {},
             payment_methods: rest.payment_methods || ['cash'],
-            kitchen_pin: rest.kitchen_pin || '1234',
+            kitchen_pin: rest.kitchen_pin || '',
             is_active: rest.is_active !== false,
           })
-        } else {
-          setRestaurant({ id: 'demo', slug })
-          setForm(f => ({ ...f, name: slug.charAt(0).toUpperCase() + slug.slice(1), city: 'Harare' }))
         }
-      } catch {
-        setRestaurant({ id: 'demo', slug })
+      } catch (err) {
+        console.error('Failed to load settings:', err)
       }
       setLoading(false)
     }
@@ -70,7 +67,7 @@ export default function RestaurantSettings() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      if (restaurant?.id && restaurant.id !== 'demo') {
+      if (restaurant?.id) {
         await updateRestaurant(restaurant.id, form)
       }
       setSaved(true)

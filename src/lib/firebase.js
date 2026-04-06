@@ -5,14 +5,21 @@ let _auth = null
 let _storage = null
 let _warming = false
 
-// Warn in console but don't crash — demo mode uses fallbacks
+// Validate required Firebase env vars — fail fast if misconfigured
+;['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_APP_ID']
+  .forEach(key => {
+    if (!import.meta.env[key]) {
+      throw new Error(`Missing ${key} in .env — Firebase cannot initialize.`)
+    }
+  })
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-key',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'demo.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'demo.appspot.com',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:000:web:000',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
 export async function getApp() {
@@ -50,19 +57,14 @@ export async function getAuthInstance() {
   return _auth
 }
 
-// Pre-warm Firebase + Firestore on first user interaction
-// This runs in the background so by the time the user navigates,
-// Firebase is already initialized and the first query is faster
+// Pre-warm Firebase + Firestore + Storage on first user interaction
 export function warmUp() {
   if (_warming || _db) return
   _warming = true
-  // Don't await — fire and forget in the background
   getDb().catch(() => {})
-  // Also pre-warm Storage SDK so first image upload doesn't stall
   getStorageInstance().catch(() => {})
 }
 
-// Start warming on first interaction (click, touch, scroll)
 if (typeof window !== 'undefined') {
   const trigger = () => {
     warmUp()

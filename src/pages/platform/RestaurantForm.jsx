@@ -18,7 +18,7 @@ const EMPTY_FORM = {
   opening_hours: { mon: '11:00-22:00', tue: '11:00-22:00', wed: '11:00-22:00', thu: '11:00-22:00', fri: '11:00-23:00', sat: '11:00-23:00', sun: '12:00-21:00' },
   payment_methods: ['cash', 'ecocash'],
   subscription_tier: 'pro',
-  kitchen_pin: '1234',
+  kitchen_pin: '',
   rating: null,
   table_count: 0,
 }
