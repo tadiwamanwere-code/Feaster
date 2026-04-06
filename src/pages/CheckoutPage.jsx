@@ -39,6 +39,10 @@ export default function CheckoutPage() {
       setError('Your cart is empty')
       return
     }
+    if (total < 1) {
+      setError('Minimum order amount is $1.00')
+      return
+    }
     if ((orderType === 'pre_order' || orderType === 'takeout') && (!scheduledDate || !scheduledTime)) {
       setError('Please select a pickup date and time')
       return
@@ -297,7 +301,7 @@ export default function CheckoutPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={submitting || cart.items.length === 0}
+          disabled={submitting || cart.items.length === 0 || total < 1}
           className="w-full bg-orange-600 text-white py-4 rounded-2xl font-semibold text-base hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? (
@@ -305,6 +309,8 @@ export default function CheckoutPage() {
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Placing order...
             </span>
+          ) : total < 1 ? (
+            'Minimum order $1.00'
           ) : (
             `Place Order — $${total.toFixed(2)}`
           )}
