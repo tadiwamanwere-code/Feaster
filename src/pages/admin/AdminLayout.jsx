@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Outlet, useParams, useLocation, Navigate } from 'react-router-dom'
+import { Link, Navigate, Outlet, useParams, useLocation } from 'react-router-dom'
 import { UtensilsCrossed, Menu as MenuIcon, X, LayoutDashboard, BookOpen, QrCode, ClipboardList, Calendar, Settings, LogOut, ChefHat } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -18,15 +18,16 @@ export default function AdminLayout() {
   const { user, loading, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Allow access in demo mode (no Firebase auth configured)
-  const isDemoMode = !user && !loading
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-orange-200 border-t-orange-600 rounded-full animate-spin" />
       </div>
     )
+  }
+
+  if (!user) {
+    return <Navigate to={`/admin/${slug}/login`} replace />
   }
 
   return (
@@ -101,12 +102,12 @@ export default function AdminLayout() {
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                 <span className="text-xs font-medium text-gray-600">
-                  {user?.email?.[0]?.toUpperCase() || 'A'}
+                  {user.email[0].toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.email || 'Demo Admin'}
+                  {user.email}
                 </p>
               </div>
               <button

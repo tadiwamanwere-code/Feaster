@@ -15,17 +15,17 @@ export default function AdminLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
 
+    if (!email || !password) {
+      setError('Email and password are required')
+      return
+    }
+
+    setLoading(true)
     try {
       await login(email, password)
       navigate(`/admin/${slug}`)
-    } catch (err) {
-      // Allow demo access
-      if (email === 'demo@feaster.app' || !email) {
-        navigate(`/admin/${slug}`)
-        return
-      }
+    } catch {
       setError('Invalid email or password')
     }
     setLoading(false)
@@ -53,6 +53,7 @@ export default function AdminLogin() {
                 onChange={e => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="admin@restaurant.com"
+                required
               />
             </div>
           </div>
@@ -66,6 +67,7 @@ export default function AdminLogin() {
                 onChange={e => setPassword(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 placeholder="Enter password"
+                required
               />
             </div>
           </div>
@@ -79,10 +81,6 @@ export default function AdminLogin() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
-
-          <p className="text-xs text-gray-400 text-center">
-            Demo: press Sign In with any email or leave blank
-          </p>
         </form>
       </div>
     </div>
