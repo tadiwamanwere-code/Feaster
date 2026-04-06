@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, X, GripVertical, Eye, EyeOff, Image, Link2, Loader, Upload } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
+import { getAuthInstance } from '../../lib/firebase'
 
 const DEMO_MENU = [
   { id: 'm1', name: 'Classic Burger', description: 'Beef patty, lettuce, tomato, special sauce', price: 8.50, category: 'Mains', is_available: true, sort_order: 0 },
@@ -65,8 +66,23 @@ export default function MenuManagement() {
     })
   }
 
+  const [uploadError, setUploadError] = useState('')
+
   const handleImageUpload = async (file) => {
     if (!file) return
+    setUploadError('')
+
+    // Check auth first — Firebase Storage requires login
+    try {
+      const auth = await getAuthInstance()
+      if (!auth.currentUser) {
+        setUploadError('Please log in to upload images')
+        return
+      }
+    } catch {
+      // Auth not available — allow attempt anyway
+    }
+
     setUploading(true)
     setUploadProgress(0)
     try {
@@ -78,6 +94,7 @@ export default function MenuManagement() {
       setForm(f => ({ ...f, image_url: url }))
     } catch (err) {
       console.error('Image upload failed:', err)
+      setUploadError('Upload failed — check your connection and try again')
     }
     setUploading(false)
     setUploadProgress(0)
@@ -286,6 +303,9 @@ export default function MenuManagement() {
                   className="hidden"
                   onChange={e => handleImageUpload(e.target.files[0])}
                 />
+                {uploadError && (
+                  <p className="text-xs text-red-500 mt-1">{uploadError}</p>
+                )}
                 {!form.image_url && (
                   <div className="flex items-center gap-2 mt-2">
                     <Link2 className="w-4 h-4 text-gray-400 shrink-0" />

@@ -290,65 +290,61 @@ export async function deleteRestaurant(id) {
 
 // ─── Image Uploads ─────────────────────────────────────────────
 
-// Best-in-class client-side compression: WebP with JPEG fallback,
-// aggressive resize for menu thumbnails, OffscreenCanvas when available
+// Client-side compression: WebP with JPEG fallback, aggressive resize for menus
 function compressImage(file, { maxWidth = 800, quality = 0.7, forMenu = false } = {}) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!file.type.startsWith('image/')) return resolve(file)
 
-    // Menu images are thumbnails — compress harder
     if (forMenu) { maxWidth = 600; quality = 0.65 }
+
+    // Timeout safety net — if compression hangs, just upload original
+    const timeout = setTimeout(() => resolve(file), 8000)
 
     const img = new Image()
     const url = URL.createObjectURL(file)
 
     img.onload = () => {
       URL.revokeObjectURL(url)
-      let { width, height } = img
-      if (width > maxWidth) {
-        height = Math.round((height * maxWidth) / width)
-        width = maxWidth
-      }
-
-      // Use OffscreenCanvas if available (doesn't block main thread)
-      const canvas = typeof OffscreenCanvas !== 'undefined'
-        ? new OffscreenCanvas(width, height)
-        : document.createElement('canvas')
-      if (canvas.width !== undefined) { canvas.width = width; canvas.height = height }
-
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(img, 0, 0, width, height)
-
-      // Try WebP first (much smaller), fall back to JPEG
-      const tryFormat = (format) => {
-        if (canvas.convertToBlob) {
-          return canvas.convertToBlob({ type: format, quality })
+      try {
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
         }
-        return new Promise(res =>
-          canvas.toBlob(blob => res(blob), format, quality)
-        )
-      }
 
-      tryFormat('image/webp').then(blob => {
-        // Some browsers return a very large webp or null — fall back to jpeg
-        if (!blob || blob.size > file.size) {
-          return tryFormat('image/jpeg')
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+
+        // Try WebP first (much smaller), fall back to JPEG
+        const done = (blob) => {
+          clearTimeout(timeout)
+          if (!blob) { resolve(file); return }
+          const ext = blob.type === 'image/webp' ? '.webp' : '.jpg'
+          const name = file.name.replace(/\.[^.]+$/, ext)
+          resolve(new File([blob], name, { type: blob.type }))
         }
-        return blob
-      }).then(blob => {
-        const ext = blob.type === 'image/webp' ? '.webp' : '.jpg'
-        const name = file.name.replace(/\.[^.]+$/, ext)
-        resolve(new File([blob], name, { type: blob.type }))
-      }).catch(() => resolve(file)) // on any error, upload original
+
+        canvas.toBlob((webpBlob) => {
+          if (webpBlob && webpBlob.size < file.size) {
+            done(webpBlob)
+          } else {
+            canvas.toBlob((jpgBlob) => done(jpgBlob), 'image/jpeg', quality)
+          }
+        }, 'image/webp', quality)
+      } catch {
+        clearTimeout(timeout)
+        resolve(file)
+      }
     }
 
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.onerror = () => { clearTimeout(timeout); URL.revokeObjectURL(url); resolve(file) }
     img.src = url
   })
 }
 
-// Resumable upload with progress callback
-// onProgress receives a value 0-100
+// Resumable upload with progress callback — onProgress receives 0-100
 export async function uploadImage(path, file, { onProgress, forMenu = false } = {}) {
   const compressed = await compressImage(file, { forMenu })
   const storage = await getStorageInstance()
@@ -358,20 +354,18 @@ export async function uploadImage(path, file, { onProgress, forMenu = false } = 
   return new Promise((resolve, reject) => {
     const task = uploadBytesResumable(storageRef, compressed, {
       contentType: compressed.type,
-      cacheControl: 'public, max-age=31536000', // CDN cache 1 year
+      cacheControl: 'public, max-age=31536000',
     })
 
     task.on('state_changed',
       (snap) => {
         if (onProgress) {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
-          onProgress(pct)
+          onProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100))
         }
       },
       (err) => reject(err),
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref)
-        resolve(url)
+      () => {
+        getDownloadURL(task.snapshot.ref).then(resolve).catch(reject)
       }
     )
   })

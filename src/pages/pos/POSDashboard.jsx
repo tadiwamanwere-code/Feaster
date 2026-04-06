@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import QRCodeLib from 'qrcode'
 import { getRestaurantBySlug, subscribeToKitchenOrders, updateOrderStatus, getOrdersByRestaurant, getTables, getMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../../lib/services'
+import { getAuthInstance } from '../../lib/firebase'
 import { formatDistanceToNow, formatDate } from '../../lib/dates'
 import { buildQRPrintHTML, downloadQRImage } from '../../lib/qr-print'
 
@@ -655,8 +656,20 @@ function POSMenuPanel({ restaurant }) {
 
   const categories = [...new Set(items.map(i => i.category))]
 
+  const [uploadError, setUploadError] = useState('')
+
   const handleImageUpload = async (file) => {
     if (!file) return
+    setUploadError('')
+
+    try {
+      const auth = await getAuthInstance()
+      if (!auth.currentUser) {
+        setUploadError('Please log in to upload images')
+        return
+      }
+    } catch {}
+
     setUploading(true)
     setUploadProgress(0)
     try {
@@ -668,6 +681,7 @@ function POSMenuPanel({ restaurant }) {
       setForm(f => ({ ...f, image_url: url }))
     } catch (err) {
       console.error('Image upload failed:', err)
+      setUploadError('Upload failed — check your connection and try again')
     }
     setUploading(false)
     setUploadProgress(0)
@@ -802,6 +816,7 @@ function POSMenuPanel({ restaurant }) {
                   </div>
                 )}
                 <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e.target.files[0])} />
+                {uploadError && <p className="text-xs text-red-400 mt-1">{uploadError}</p>}
                 {!form.image_url && (
                   <div className="flex items-center gap-2 mt-2">
                     <Link2 className="w-4 h-4 text-gray-500 shrink-0" />
