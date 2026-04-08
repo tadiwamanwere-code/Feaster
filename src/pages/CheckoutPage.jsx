@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Minus, Plus, Trash2, Calendar, Clock, CreditCard, Banknote, Smartphone } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { createOrder } from '../lib/services'
+import { saveOrder } from '../lib/order-store'
 
 const PAYMENT_METHODS = [
   { id: 'cash', label: 'Cash', icon: Banknote, description: 'Pay when food arrives' },
@@ -76,6 +77,7 @@ export default function CheckoutPage() {
       }
 
       const data = await createOrder(orderData)
+      saveOrder(data.id, { restaurant: slug, total })
       dispatch({ type: 'CLEAR_CART' })
       navigate(`/order/${data.id}`)
     } catch (err) {

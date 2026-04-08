@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { ShoppingBag, Home } from 'lucide-react'
+import { ShoppingBag, Home, ClipboardList } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { getOrderCount } from '../lib/order-store'
 import PWAInstallPrompt from './PWAInstallPrompt'
 
 export default function Layout() {
@@ -30,10 +31,15 @@ export default function Layout() {
             </div>
             <span className="text-xl font-bold text-gray-900">Feaster</span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
             <Link to="/explore" className="text-gray-600 hover:text-orange-600">
               <Home className="w-5 h-5" />
             </Link>
+            {getOrderCount() > 0 && (
+              <Link to="/my-orders" className="relative text-gray-600 hover:text-orange-600">
+                <ClipboardList className="w-5 h-5" />
+              </Link>
+            )}
           </nav>
         </div>
       </header>

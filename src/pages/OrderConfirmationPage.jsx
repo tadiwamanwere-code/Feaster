@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { CheckCircle, Clock, ChefHat, Bell, Package, Home, XCircle, Timer } from 'lucide-react'
+import { CheckCircle, Clock, ChefHat, Bell, Package, Home, XCircle, Timer, ClipboardList } from 'lucide-react'
 import { subscribeToOrder, updateOrderStatus } from '../lib/services'
 import StatusBadge from '../components/StatusBadge'
 
@@ -266,13 +266,22 @@ export default function OrderConfirmationPage() {
         </p>
       </div>
 
-      <Link
-        to="/"
-        className="flex items-center justify-center gap-2 w-full py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
-      >
-        <Home className="w-4 h-4" />
-        Browse Restaurants
-      </Link>
+      <div className="space-y-3">
+        <Link
+          to="/my-orders"
+          className="flex items-center justify-center gap-2 w-full py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors"
+        >
+          <ClipboardList className="w-4 h-4" />
+          My Orders
+        </Link>
+        <Link
+          to="/"
+          className="flex items-center justify-center gap-2 w-full py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 font-medium"
+        >
+          <Home className="w-4 h-4" />
+          Browse Restaurants
+        </Link>
+      </div>
     </div>
   )
 }

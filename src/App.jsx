@@ -19,6 +19,7 @@ const HomePage = lazy(() => import('./pages/HomePage'))
 const RestaurantPage = lazy(() => import('./pages/RestaurantPage'))
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
 const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'))
+const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage'))
 const KitchenDisplay = lazy(() => import('./pages/kitchen/KitchenDisplay'))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
@@ -75,6 +76,9 @@ export default function App() {
               </Route>
               <Route path="/order/:orderId" element={<Layout />}>
                 <Route index element={<OrderConfirmationPage />} />
+              </Route>
+              <Route path="/my-orders" element={<Layout />}>
+                <Route index element={<MyOrdersPage />} />
               </Route>
               <Route element={<Layout />}>
                 <Route path="/:slug" element={<RestaurantPage />} />
