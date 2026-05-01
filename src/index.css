@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* Brand orange */
   --color-orange-50: #fff7ed;
   --color-orange-100: #ffedd5;
   --color-orange-200: #fed7aa;
@@ -11,7 +12,26 @@
   --color-orange-700: #c2410c;
   --color-orange-800: #9a3412;
   --color-orange-900: #7c2d12;
+
+  /* Soft lavender canvas (Foodholic-inspired) */
+  --color-canvas-50: #f6f5fb;
+  --color-canvas-100: #eceaf6;
+  --color-canvas-200: #ddd9ee;
+  --color-canvas-300: #c8c2e1;
+
+  /* Neutral ink */
+  --color-ink-900: #1a1a2e;
+  --color-ink-700: #4a4a63;
+  --color-ink-500: #7c7c93;
+  --color-ink-400: #a0a0b8;
+  --color-ink-200: #e6e6f0;
+
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Soft shell shadow */
+  --shadow-shell: 0 24px 60px -20px rgba(31, 27, 89, 0.18), 0 8px 24px -12px rgba(31, 27, 89, 0.08);
+  --shadow-soft: 0 4px 16px -4px rgba(31, 27, 89, 0.08);
+  --shadow-pop: 0 8px 24px -8px rgba(234, 88, 12, 0.35);
 }
 
 html {
@@ -22,13 +42,36 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #ECEAF6;
+  color: #1a1a2e;
 }
 
-/* Hide scrollbar for kitchen display */
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Subtle scrollbar for sidebar/long lists */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(31, 27, 89, 0.12);
+  border-radius: 999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 27, 89, 0.22);
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Inputs default focus ring */
+input:focus, textarea:focus, select:focus {
+  outline: none;
 }

@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, MapPin, Clock, Star } from 'lucide-react'
+import { Search, MapPin, Clock, Star, Bell, ChevronRight, Sparkles } from 'lucide-react'
 import { getRestaurants } from '../lib/services'
 
-// Demo data used when Firebase is not configured
 const DEMO_RESTAURANTS = [
   {
     id: 'demo-1',
@@ -72,14 +71,8 @@ export default function HomePage() {
 
   useEffect(() => {
     getRestaurants()
-      .then(data => {
-        // Show real restaurants, append demo only if none exist
-        setRestaurants(data.length > 0 ? data : DEMO_RESTAURANTS)
-      })
-      .catch(() => {
-        // Firebase not configured — show demo
-        setRestaurants(DEMO_RESTAURANTS)
-      })
+      .then(data => setRestaurants(data.length > 0 ? data : DEMO_RESTAURANTS))
+      .catch(() => setRestaurants(DEMO_RESTAURANTS))
       .finally(() => setLoading(false))
   }, [])
 
@@ -92,127 +85,184 @@ export default function HomePage() {
     return matchesCity && matchesSearch
   }), [restaurants, city, search])
 
+  const featured = filtered.slice(0, 1)[0]
+  const list = filtered
+
   return (
-    <div className="px-4 py-6 pb-24">
-      {/* Hero */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Discover <span className="text-orange-600">great food</span>
-        </h1>
-        <p className="text-gray-500 mt-1">Order ahead. Skip the queue. Eat happy.</p>
+    <div className="lg:overflow-y-auto thin-scrollbar lg:h-[calc(100vh-3rem)]">
+      {/* Top bar with search */}
+      <div className="px-5 lg:px-8 pt-5 lg:pt-7 pb-4 flex items-center gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search restaurants or cuisine..."
+            className="w-full pl-10 pr-4 py-2.5 bg-canvas-50 border border-canvas-200 rounded-2xl text-sm placeholder:text-ink-400 focus:bg-white focus:border-orange-300 focus:ring-2 focus:ring-orange-100 transition-all"
+          />
+        </div>
+        <button className="hidden sm:flex w-9 h-9 items-center justify-center rounded-xl text-ink-500 hover:bg-canvas-50 relative">
+          <Bell className="w-[18px] h-[18px]" />
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search restaurants or cuisine..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        />
-      </div>
+      <div className="px-5 lg:px-8 pb-12">
+        {/* Hero greeting */}
+        <div className="mb-7 mt-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold mb-3">
+            <Sparkles className="w-3 h-3" />
+            Pre-order. Skip the queue.
+          </div>
+          <h1 className="text-3xl lg:text-4xl font-bold text-ink-900 tracking-tight leading-tight">
+            Discover great food <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
+              near you.
+            </span>
+          </h1>
+          <p className="text-ink-500 mt-2.5 text-sm">Order ahead, eat happy. No more waiting in lines.</p>
+        </div>
 
-      {/* City Filter */}
-      <div className="flex gap-2 mb-6">
-        {CITIES.map(c => (
-          <button
-            key={c}
-            onClick={() => setCity(c)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              city === c
-                ? 'bg-orange-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300'
-            }`}
+        {/* City Filter */}
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar">
+          <span className="text-xs font-semibold text-ink-400 uppercase tracking-wider mr-1 shrink-0">City:</span>
+          {CITIES.map(c => (
+            <button
+              key={c}
+              onClick={() => setCity(c)}
+              className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                city === c
+                  ? 'bg-ink-900 text-white shadow-soft'
+                  : 'bg-white text-ink-500 border border-canvas-200 hover:border-ink-200 hover:text-ink-900'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {/* Featured banner */}
+        {!loading && featured && (
+          <Link
+            to={`/${featured.slug}`}
+            className="group block mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-6 lg:p-8 shadow-pop"
           >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* Restaurant Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
-              <div className="h-36 bg-gray-200" />
-              <div className="p-4 space-y-2">
-                <div className="h-5 bg-gray-200 rounded w-2/3" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
+            {featured.cover_photo_url && (
+              <img
+                src={featured.cover_photo_url}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+              />
+            )}
+            <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute -right-20 -bottom-20 w-56 h-56 bg-orange-300/20 rounded-full blur-3xl" />
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white/80 mb-2">
+                  Featured
+                </span>
+                <h2 className="text-2xl lg:text-3xl font-bold text-white tracking-tight leading-tight">
+                  {featured.name}
+                </h2>
+                <p className="text-sm text-white/80 mt-1">{featured.cuisine_type} · {featured.city}</p>
+                <div className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full bg-white text-orange-700 text-sm font-semibold group-hover:bg-orange-50 transition-colors">
+                  Order now
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="hidden sm:flex w-24 h-24 lg:w-32 lg:h-32 rounded-3xl bg-white/15 backdrop-blur-sm items-center justify-center text-5xl lg:text-6xl font-black text-white shrink-0">
+                {featured.name[0]}
               </div>
             </div>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-gray-500">No restaurants found</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {filtered.map(restaurant => (
-            <Link
-              key={restaurant.id}
-              to={`/${restaurant.slug}`}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-200 transition-all group"
-            >
-              {/* Cover photo */}
-              <div className="h-36 bg-gradient-to-br from-orange-400 to-orange-600 relative overflow-hidden">
-                {restaurant.cover_photo_url ? (
-                  <img
-                    src={restaurant.cover_photo_url}
-                    alt={restaurant.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-5xl font-bold text-white/30">
-                      {restaurant.name[0]}
-                    </span>
-                  </div>
-                )}
-                {/* Rating badge */}
-                {restaurant.rating && (
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                    <span className="text-xs font-semibold">{restaurant.rating}</span>
-                  </div>
-                )}
-              </div>
+          </Link>
+        )}
 
-              {/* Info */}
-              <div className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
-                      {restaurant.name}
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-0.5">{restaurant.cuisine_type}</p>
-                  </div>
-                  {restaurant.logo_url && (
+        {/* All restaurants */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-ink-900">All restaurants</h2>
+          <span className="text-xs text-ink-500">{filtered.length} found</span>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-white rounded-3xl overflow-hidden animate-pulse border border-canvas-200">
+                <div className="h-36 bg-canvas-100" />
+                <div className="p-4 space-y-2">
+                  <div className="h-5 bg-canvas-100 rounded w-2/3" />
+                  <div className="h-4 bg-canvas-100 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : list.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-3xl border border-canvas-200">
+            <p className="text-ink-500 font-medium">No restaurants found</p>
+            <p className="text-sm text-ink-400 mt-1">Try a different city or search term</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {list.map(restaurant => (
+              <Link
+                key={restaurant.id}
+                to={`/${restaurant.slug}`}
+                className="bg-white rounded-3xl overflow-hidden border border-canvas-200 hover:border-orange-200 hover:shadow-soft hover:-translate-y-0.5 transition-all group"
+              >
+                <div className="h-36 bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 relative overflow-hidden">
+                  {restaurant.cover_photo_url ? (
                     <img
-                      src={restaurant.logo_url}
-                      alt=""
-                      className="w-10 h-10 rounded-lg object-cover border border-gray-100"
+                      src={restaurant.cover_photo_url}
+                      alt={restaurant.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-5xl font-black text-white/40">
+                        {restaurant.name[0]}
+                      </span>
+                    </div>
+                  )}
+                  {restaurant.rating && (
+                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-xl px-2 py-1 flex items-center gap-1 shadow-soft">
+                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <span className="text-xs font-bold text-ink-900 tabular-nums">{restaurant.rating}</span>
+                    </div>
                   )}
                 </div>
-                <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {restaurant.city}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    Pre-order available
-                  </span>
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="font-bold text-ink-900 truncate group-hover:text-orange-600 transition-colors">
+                        {restaurant.name}
+                      </h2>
+                      <p className="text-sm text-ink-500 mt-0.5 truncate">{restaurant.cuisine_type}</p>
+                    </div>
+                    {restaurant.logo_url && (
+                      <img
+                        src={restaurant.logo_url}
+                        alt=""
+                        className="w-10 h-10 rounded-xl object-cover border border-canvas-200 shrink-0"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-3 text-xs text-ink-400">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {restaurant.city}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Pre-order
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
