@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, Outlet, useParams, useLocation } from 'react-router-dom'
-import { UtensilsCrossed, Menu as MenuIcon, X, LayoutDashboard, BookOpen, QrCode, ClipboardList, Calendar, Settings, LogOut, ChefHat, ExternalLink } from 'lucide-react'
+import { UtensilsCrossed, Menu as MenuIcon, X, LayoutDashboard, BookOpen, QrCode, ClipboardList, Calendar, Settings, LogOut, ChefHat, ExternalLink, Bike } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 const NAV_ITEMS = [
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { path: '/menu', label: 'Menu', icon: BookOpen },
   { path: '/tables', label: 'QR Codes & Tables', icon: QrCode },
   { path: '/orders', label: 'Orders', icon: ClipboardList },
+  { path: '/deliveries', label: 'Deliveries', icon: Bike },
   { path: '/calendar', label: 'Pre-Orders', icon: Calendar },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]

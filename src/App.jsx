@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
+import { CustomerAuthProvider } from './context/CustomerAuthContext'
+import { DriverAuthProvider } from './context/DriverAuthContext'
 
 import Layout from './components/Layout'
 
@@ -13,7 +15,7 @@ function Loading() {
   )
 }
 
-// Lazy-loaded pages
+// Existing pages
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const HomePage = lazy(() => import('./pages/HomePage'))
 const RestaurantPage = lazy(() => import('./pages/RestaurantPage'))
@@ -29,66 +31,114 @@ const TableManagement = lazy(() => import('./pages/admin/TableManagement'))
 const OrderHistory = lazy(() => import('./pages/admin/OrderHistory'))
 const PreOrderCalendar = lazy(() => import('./pages/admin/PreOrderCalendar'))
 const RestaurantSettings = lazy(() => import('./pages/admin/RestaurantSettings'))
+const DeliveriesView = lazy(() => import('./pages/admin/DeliveriesView'))
 const PlatformLayout = lazy(() => import('./pages/platform/PlatformLayout'))
 const PlatformRestaurants = lazy(() => import('./pages/platform/PlatformRestaurants'))
 const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
 const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
 const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
+// Customer PWA
+const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
+const CustomerLayout = lazy(() => import('./pages/customer/CustomerLayout'))
+const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
+const CustomerRestaurant = lazy(() => import('./pages/customer/CustomerRestaurant'))
+const CustomerCart = lazy(() => import('./pages/customer/CustomerCart'))
+const CustomerCheckout = lazy(() => import('./pages/customer/CustomerCheckout'))
+const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
+const CustomerTrackOrder = lazy(() => import('./pages/customer/CustomerTrackOrder'))
+const CustomerProfile = lazy(() => import('./pages/customer/CustomerProfile'))
+
+// Driver PWA
+const DriverAuth = lazy(() => import('./pages/driver/DriverAuth'))
+const DriverOnboarding = lazy(() => import('./pages/driver/DriverOnboarding'))
+const DriverLayout = lazy(() => import('./pages/driver/DriverLayout'))
+const DriverJobs = lazy(() => import('./pages/driver/DriverJobs'))
+const DriverWallet = lazy(() => import('./pages/driver/DriverWallet'))
+const DriverProfile = lazy(() => import('./pages/driver/DriverProfile'))
+const DriverActiveDelivery = lazy(() => import('./pages/driver/DriverActiveDelivery'))
+
 export default function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <Suspense fallback={<Loading />}>
-            <Routes>
-              {/* Landing page */}
-              <Route path="/" element={<LandingPage />} />
+      <CustomerAuthProvider>
+        <DriverAuthProvider>
+          <CartProvider>
+            <BrowserRouter>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  {/* Landing */}
+                  <Route path="/" element={<LandingPage />} />
 
-              {/* POS System (cashier/restaurant tablet) — BEFORE /:slug */}
-              <Route path="/system/login" element={<SystemLogin />} />
-              <Route path="/pos/:slug" element={<POSDashboard />} />
+                  {/* POS */}
+                  <Route path="/system/login" element={<SystemLogin />} />
+                  <Route path="/pos/:slug" element={<POSDashboard />} />
 
-              {/* Kitchen display */}
-              <Route path="/kitchen/:slug" element={<KitchenDisplay />} />
+                  {/* Kitchen */}
+                  <Route path="/kitchen/:slug" element={<KitchenDisplay />} />
 
-              {/* Restaurant admin */}
-              <Route path="/admin/:slug/login" element={<AdminLogin />} />
-              <Route path="/admin/:slug" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="menu" element={<MenuManagement />} />
-                <Route path="tables" element={<TableManagement />} />
-                <Route path="orders" element={<OrderHistory />} />
-                <Route path="calendar" element={<PreOrderCalendar />} />
-                <Route path="settings" element={<RestaurantSettings />} />
-              </Route>
+                  {/* Restaurant admin */}
+                  <Route path="/admin/:slug/login" element={<AdminLogin />} />
+                  <Route path="/admin/:slug" element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="menu" element={<MenuManagement />} />
+                    <Route path="tables" element={<TableManagement />} />
+                    <Route path="orders" element={<OrderHistory />} />
+                    <Route path="deliveries" element={<DeliveriesView />} />
+                    <Route path="calendar" element={<PreOrderCalendar />} />
+                    <Route path="settings" element={<RestaurantSettings />} />
+                  </Route>
 
-              {/* Platform admin (Feaster creator) */}
-              <Route path="/platform" element={<PlatformLayout />}>
-                <Route index element={<PlatformRestaurants />} />
-                <Route path="add" element={<RestaurantForm />} />
-                <Route path="edit/:id" element={<RestaurantForm />} />
-              </Route>
+                  {/* Platform admin */}
+                  <Route path="/platform" element={<PlatformLayout />}>
+                    <Route index element={<PlatformRestaurants />} />
+                    <Route path="add" element={<RestaurantForm />} />
+                    <Route path="edit/:id" element={<RestaurantForm />} />
+                  </Route>
 
-              {/* Customer routes — /:slug MUST be last since it catches everything */}
-              <Route path="/explore" element={<Layout />}>
-                <Route index element={<HomePage />} />
-              </Route>
-              <Route path="/order/:orderId" element={<Layout />}>
-                <Route index element={<OrderConfirmationPage />} />
-              </Route>
-              <Route path="/my-orders" element={<Layout />}>
-                <Route index element={<MyOrdersPage />} />
-              </Route>
-              <Route element={<Layout />}>
-                <Route path="/:slug" element={<RestaurantPage />} />
-                <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
-                <Route path="/:slug/checkout" element={<CheckoutPage />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </CartProvider>
+                  {/* Customer PWA */}
+                  <Route path="/app/auth" element={<CustomerAuth />} />
+                  <Route path="/app" element={<CustomerLayout />}>
+                    <Route index element={<CustomerHome />} />
+                    <Route path="r/:slug" element={<CustomerRestaurant />} />
+                    <Route path="cart" element={<CustomerCart />} />
+                    <Route path="checkout" element={<CustomerCheckout />} />
+                    <Route path="orders" element={<CustomerOrders />} />
+                    <Route path="track/:orderId" element={<CustomerTrackOrder />} />
+                    <Route path="profile" element={<CustomerProfile />} />
+                  </Route>
+
+                  {/* Driver PWA */}
+                  <Route path="/driver/auth" element={<DriverAuth />} />
+                  <Route path="/driver/onboarding" element={<DriverOnboarding />} />
+                  <Route path="/driver/delivery/:deliveryId" element={<DriverActiveDelivery />} />
+                  <Route path="/driver" element={<DriverLayout />}>
+                    <Route index element={<DriverJobs />} />
+                    <Route path="wallet" element={<DriverWallet />} />
+                    <Route path="profile" element={<DriverProfile />} />
+                  </Route>
+
+                  {/* Public customer routes (existing) — /:slug catches everything, MUST be last */}
+                  <Route path="/explore" element={<Layout />}>
+                    <Route index element={<HomePage />} />
+                  </Route>
+                  <Route path="/order/:orderId" element={<Layout />}>
+                    <Route index element={<OrderConfirmationPage />} />
+                  </Route>
+                  <Route path="/my-orders" element={<Layout />}>
+                    <Route index element={<MyOrdersPage />} />
+                  </Route>
+                  <Route element={<Layout />}>
+                    <Route path="/:slug" element={<RestaurantPage />} />
+                    <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
+                    <Route path="/:slug/checkout" element={<CheckoutPage />} />
+                  </Route>
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </CartProvider>
+        </DriverAuthProvider>
+      </CustomerAuthProvider>
     </AuthProvider>
   )
 }
