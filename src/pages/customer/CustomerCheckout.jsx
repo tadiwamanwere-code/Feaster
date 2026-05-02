@@ -4,8 +4,7 @@ import { Loader, MapPin, Clock, Utensils, Bike, ChevronRight } from 'lucide-reac
 import { useCart } from '../../context/CartContext'
 import { useCustomerAuth } from '../../context/CustomerAuthContext'
 import { getRestaurantBySlug } from '../../lib/services'
-import { supabase } from '../../lib/supabase'
-import { quoteDelivery, createDelivery } from '../../lib/deliveries'
+import { quoteDelivery, createDelivery, placeOrder } from '../../lib/deliveries'
 import { verifyPin } from '../../lib/customers'
 import AddressPicker from '../../components/AddressPicker'
 
@@ -103,52 +102,31 @@ export default function CustomerCheckout() {
 
     setSubmitting(true)
     try {
-      const orderPayload = {
-        restaurant_id: restaurant.id,
-        customer_id: profile.id,
-        customer_name: profile.full_name || null,
-        customer_phone: profile.phone,
+      // Server-authoritative pricing: send only (item_id, quantity, notes).
+      const placed = await placeOrder({
+        restaurantId: restaurant.id,
         items: cart.items.map(i => ({
           item_id: i.id || i.item_id,
-          name: i.name,
           quantity: i.quantity,
-          price: i.price,
           notes: i.notes || '',
         })),
-        order_type: orderType,
-        payment_method: paymentMethod,
-        payment_status: 'pending',
-        subtotal,
-        delivery_fee: orderType === 'delivery' ? Number(deliveryQuote.total) : 0,
-        total,
-        scheduled_for: orderType === 'pre_order' ? scheduledFor : null,
-        status: orderType === 'delivery' ? 'pending' : 'confirmed',
-        customer_notes: '',
-      }
+        orderType,
+        paymentMethod,
+        scheduledFor: orderType === 'pre_order' ? scheduledFor : null,
+        customerNotes: '',
+      })
+      if (!placed?.order_id) throw new Error('Order could not be placed')
 
-      const { data: order, error: orderErr } = await supabase
-        .from('orders')
-        .insert(orderPayload)
-        .select()
-        .single()
-      if (orderErr) throw orderErr
-
-      // Create delivery row if applicable; status flow then continues to dispatch
       if (orderType === 'delivery') {
         await createDelivery({
-          orderId: order.id,
-          restaurantId: restaurant.id,
+          orderId: placed.order_id,
           pickup: { ...pickupPoint, address: restaurant.name + ' — pickup' },
           dropoff: { ...dropoff, address: dropoff.address || 'Selected location' },
-          city: restaurant.city || 'Harare',
         })
-        cart.clear()
-        navigate(`/app/track/${order.id}`, { replace: true })
-        return
       }
 
       cart.clear()
-      navigate(`/app/track/${order.id}`, { replace: true })
+      navigate(`/app/track/${placed.order_id}`, { replace: true })
     } catch (err) {
       console.error(err)
       setError(err.message || 'Failed to place order')

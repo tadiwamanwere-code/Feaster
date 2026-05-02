@@ -30,46 +30,46 @@ export async function findNearbyDrivers({ lat, lng, radiusKm = 10, limit = 20 })
   return data || []
 }
 
-// ─── Create a delivery (customer side) ─────────────────────────
+// ─── Create a delivery (server-authoritative) ──────────────────
+// Calls the SECURITY DEFINER RPC; client cannot tamper with pricing.
 
 export async function createDelivery({
   orderId,
-  restaurantId,
   pickup,           // { address, lat, lng }
   dropoff,          // { address, lat, lng }
-  city = 'Harare',
 }) {
-  const customer = await getMyCustomerProfile()
-  if (!customer) throw new Error('Not authenticated')
-  const quote = await quoteDelivery({ city, pickup, dropoff })
-  if (!quote) throw new Error('Could not calculate delivery fee')
-
-  const payload = {
-    order_id: orderId,
-    customer_id: customer.id,
-    restaurant_id: restaurantId,
-    pickup_address: pickup.address,
-    pickup_lat: pickup.lat,
-    pickup_lng: pickup.lng,
-    dropoff_address: dropoff.address,
-    dropoff_lat: dropoff.lat,
-    dropoff_lng: dropoff.lng,
-    distance_km: quote.distance_km,
-    base_fee_usd: quote.base_fee,
-    per_km_fee_usd: quote.per_km_fee,
-    surge_multiplier: quote.surge,
-    total_fee_usd: quote.total,
-    driver_earnings_usd: quote.driver_earnings,
-    platform_commission_usd: quote.platform_commission,
-    status: 'pending',
-  }
-  const { data, error } = await supabase
-    .from('deliveries')
-    .insert(payload)
-    .select()
-    .single()
+  const { data, error } = await supabase.rpc('create_delivery_for_order', {
+    p_order_id: orderId,
+    p_pickup_lat: pickup.lat,
+    p_pickup_lng: pickup.lng,
+    p_pickup_address: pickup.address,
+    p_dropoff_lat: dropoff.lat,
+    p_dropoff_lng: dropoff.lng,
+    p_dropoff_address: dropoff.address,
+  })
   if (error) throw error
-  return data
+  return data?.[0] || null
+}
+
+// ─── Place an order (server-authoritative pricing) ─────────────
+export async function placeOrder({
+  restaurantId,
+  items,           // [{ item_id, quantity, notes }]
+  orderType,
+  paymentMethod,
+  scheduledFor = null,
+  customerNotes = null,
+}) {
+  const { data, error } = await supabase.rpc('place_order', {
+    p_restaurant_id: restaurantId,
+    p_items: items,
+    p_order_type: orderType,
+    p_payment_method: paymentMethod,
+    p_scheduled_for: scheduledFor,
+    p_customer_notes: customerNotes,
+  })
+  if (error) throw error
+  return data?.[0] || null
 }
 
 export async function getDelivery(deliveryId) {
@@ -97,28 +97,36 @@ export async function getMyDeliveries(limit = 50) {
 
 // ─── Dispatch offers ───────────────────────────────────────────
 
-// Driver: list pending deliveries near their location
+// Driver: list pending deliveries near their location (anonymized via RPC)
+// Returns: { id, restaurant_id, restaurant_name, restaurant_logo, pickup_*, distance_km, fees }
+// Dropoff is rounded to ~1km grid until offer is accepted.
 export async function getOpenDeliveries({ lat, lng, radiusKm = 15 } = {}) {
-  let query = supabase
-    .from('deliveries')
-    .select('*, restaurants(name, logo_url)')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(50)
-  const { data, error } = await query
+  if (lat == null || lng == null) return []
+  const { data, error } = await supabase.rpc('get_open_deliveries_near_me', {
+    p_lat: lat,
+    p_lng: lng,
+    p_radius_km: radiusKm,
+    p_limit: 30,
+  })
   if (error) throw error
-  if (!data) return []
-  // Filter by distance client-side if location known
-  if (lat != null && lng != null) {
-    return data
-      .map(d => ({
-        ...d,
-        distance_to_pickup_km: haversineKm(lat, lng, d.pickup_lat, d.pickup_lng),
-      }))
-      .filter(d => d.distance_to_pickup_km <= radiusKm)
-      .sort((a, b) => a.distance_to_pickup_km - b.distance_to_pickup_km)
-  }
-  return data
+  // Map to legacy shape for the existing UI
+  return (data || []).map(d => ({
+    id: d.id,
+    restaurant_id: d.restaurant_id,
+    restaurants: { name: d.restaurant_name, logo_url: d.restaurant_logo },
+    pickup_lat: d.pickup_lat,
+    pickup_lng: d.pickup_lng,
+    pickup_address: d.pickup_address,
+    dropoff_lat: d.dropoff_lat_approx,
+    dropoff_lng: d.dropoff_lng_approx,
+    dropoff_address: '~ ' + Number(d.dropoff_lat_approx).toFixed(2) + ', ' + Number(d.dropoff_lng_approx).toFixed(2),
+    distance_km: d.distance_km,
+    distance_to_pickup_km: d.distance_km,
+    total_fee_usd: d.total_fee_usd,
+    driver_earnings_usd: d.driver_earnings_usd,
+    platform_commission_usd: d.platform_commission_usd,
+    created_at: d.created_at,
+  }))
 }
 
 // Driver: make an offer on a delivery
@@ -167,40 +175,22 @@ export async function acceptOffer({ offerId, driverId }) {
   return data?.[0] || { success: false }
 }
 
-// ─── Lifecycle transitions (driver) ────────────────────────────
+// ─── Lifecycle transitions (server-authoritative state machine) ─
 
-export async function markPickedUp(deliveryId) {
-  const driver = await getMyDriverProfile()
-  if (!driver) throw new Error('Not a driver')
-  const { error } = await supabase
-    .from('deliveries')
-    .update({ status: 'picked_up', picked_up_at: new Date().toISOString() })
-    .eq('id', deliveryId)
-    .eq('driver_id', driver.id)
+async function advance(deliveryId, target) {
+  const { data, error } = await supabase.rpc('driver_advance_delivery', {
+    p_delivery_id: deliveryId,
+    p_target_status: target,
+  })
   if (error) throw error
+  const result = data?.[0]
+  if (!result?.success) throw new Error(result?.error || 'Transition failed')
+  return result
 }
 
-export async function markInTransit(deliveryId) {
-  const driver = await getMyDriverProfile()
-  if (!driver) throw new Error('Not a driver')
-  const { error } = await supabase
-    .from('deliveries')
-    .update({ status: 'in_transit' })
-    .eq('id', deliveryId)
-    .eq('driver_id', driver.id)
-  if (error) throw error
-}
-
-export async function markArrived(deliveryId) {
-  const driver = await getMyDriverProfile()
-  if (!driver) throw new Error('Not a driver')
-  const { error } = await supabase
-    .from('deliveries')
-    .update({ status: 'arrived' })
-    .eq('id', deliveryId)
-    .eq('driver_id', driver.id)
-  if (error) throw error
-}
+export const markPickedUp  = (id) => advance(id, 'picked_up')
+export const markInTransit = (id) => advance(id, 'in_transit')
+export const markArrived   = (id) => advance(id, 'arrived')
 
 export async function markDelivered(deliveryId) {
   const driver = await getMyDriverProfile()
@@ -214,15 +204,12 @@ export async function markDelivered(deliveryId) {
 }
 
 export async function cancelDelivery({ deliveryId, reason }) {
-  const { error } = await supabase
-    .from('deliveries')
-    .update({
-      status: 'cancelled',
-      cancelled_at: new Date().toISOString(),
-      cancellation_reason: reason || null,
-    })
-    .eq('id', deliveryId)
+  const { data, error } = await supabase.rpc('cancel_delivery', {
+    p_delivery_id: deliveryId,
+    p_reason: reason || null,
+  })
   if (error) throw error
+  return data?.[0] || { success: false }
 }
 
 // ─── Active deliveries (for restaurant admin dashboard) ────────
