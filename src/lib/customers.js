@@ -1,9 +1,10 @@
 import { supabase } from './supabase'
-import bcrypt from 'bcryptjs'
 
-// ─── Customer auth (phone OTP + PIN) ───────────────────────────
+// ─── Customer auth (phone OTP + 6-digit PIN) ───────────────────
 
 const PHONE_REGEX = /^\+?[1-9]\d{6,14}$/
+
+export const PIN_LENGTH = 6
 
 export function normalizePhone(input) {
   if (!input) return null
@@ -20,11 +21,19 @@ export function isValidPhone(phone) {
   return PHONE_REGEX.test(phone || '')
 }
 
-// Send OTP via Supabase Auth (uses underlying SMS provider configured in Supabase)
+// Send OTP via Supabase Auth — server-side rate-limited per phone.
 export async function sendPhoneOtp(phone) {
   const normalized = normalizePhone(phone)
   if (!normalized || !isValidPhone(normalized)) {
     throw new Error('Invalid phone number')
+  }
+  // Server-side rate limit: 5 sends per phone per hour
+  const { data: rl, error: rlErr } = await supabase.rpc('rate_limit_otp_send', { p_phone: normalized })
+  if (rlErr) throw rlErr
+  const limit = rl?.[0]
+  if (limit && !limit.allowed) {
+    const mins = Math.ceil((limit.retry_after_seconds || 60) / 60)
+    throw new Error(`Too many OTP requests. Try again in ${mins} min.`)
   }
   const { error } = await supabase.auth.signInWithOtp({
     phone: normalized,
@@ -90,29 +99,34 @@ export async function updateMyCustomerProfile(updates) {
   return data
 }
 
-// ─── PIN management (bcrypt-hashed, stored on customer row) ────
+// ─── PIN management (server-side bcrypt + rate-limited verify) ─
 
 export async function setPin(pin) {
-  if (!/^\d{4,6}$/.test(pin)) throw new Error('PIN must be 4 to 6 digits')
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-  const hash = await bcrypt.hash(pin, 10)
-  const { error } = await supabase
-    .from('customers')
-    .update({ pin_hash: hash, pin_set_at: new Date().toISOString() })
-    .eq('auth_user_id', user.id)
+  if (!/^\d{6}$/.test(pin)) throw new Error('PIN must be exactly 6 digits')
+  const { data, error } = await supabase.rpc('set_customer_pin', { p_pin: pin })
   if (error) throw error
+  const result = data?.[0]
+  if (!result?.success) throw new Error(result?.error || 'Could not set PIN')
 }
 
+// Returns { success, error?, attemptsRemaining?, lockedUntil? }
 export async function verifyPin(pin) {
-  const profile = await getMyCustomerProfile()
-  if (!profile?.pin_hash) return false
-  return bcrypt.compare(pin, profile.pin_hash)
+  if (!/^\d{6}$/.test(pin || '')) return { success: false, error: 'PIN must be 6 digits' }
+  const { data, error } = await supabase.rpc('verify_customer_pin', { p_pin: pin })
+  if (error) return { success: false, error: error.message }
+  const r = data?.[0] || {}
+  return {
+    success: !!r.success,
+    error: r.error || null,
+    attemptsRemaining: r.attempts_remaining ?? null,
+    lockedUntil: r.locked_until || null,
+  }
 }
 
 export async function hasPin() {
-  const profile = await getMyCustomerProfile()
-  return !!profile?.pin_hash
+  const { data, error } = await supabase.rpc('customer_has_pin')
+  if (error) return false
+  return !!data
 }
 
 // ─── Customer addresses ────────────────────────────────────────

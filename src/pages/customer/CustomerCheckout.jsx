@@ -85,10 +85,19 @@ export default function CustomerCheckout() {
     e.preventDefault()
     setError('')
 
-    // Validate PIN
+    // Validate PIN — server-side, rate-limited
     if (!pinSet) return setError('Please set up your PIN first')
-    const ok = await verifyPin(pin)
-    if (!ok) return setError('Incorrect PIN')
+    if (pin.length !== 6) return setError('Enter your 6-digit PIN')
+    const r = await verifyPin(pin)
+    if (!r.success) {
+      if (r.lockedUntil) {
+        const mins = Math.ceil((new Date(r.lockedUntil) - Date.now()) / 60000)
+        return setError(`Too many wrong attempts. Try again in ${mins} min.`)
+      }
+      return setError(r.attemptsRemaining != null
+        ? `${r.error || 'Incorrect PIN'} — ${r.attemptsRemaining} attempts left`
+        : (r.error || 'Incorrect PIN'))
+    }
 
     if (orderType === 'pre_order' && !scheduledFor) {
       return setError('Please pick a pickup time')
@@ -264,15 +273,15 @@ export default function CustomerCheckout() {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Confirm with your PIN</label>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Confirm with your 6-digit PIN</label>
           <input
             type="password"
             inputMode="numeric"
             maxLength={6}
             value={pin}
-            onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+            onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
             className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
-            placeholder="••••"
+            placeholder="••••••"
             required
           />
         </div>

@@ -8,13 +8,14 @@ In Supabase Dashboard → SQL Editor → New Query, paste and run:
 supabase-setup.sql   (project root)
 ```
 
-## 2. Run the marketplace extension migration
+## 2. Run the migrations in order
 
-Then run:
+Run each in the SQL Editor (or `supabase db push`):
 
-```
-supabase/migrations/20260502000000_marketplace_extensions.sql
-```
+1. `supabase/migrations/20260502000000_marketplace_extensions.sql`
+2. `supabase/migrations/20260502000100_security_hardening.sql`
+3. `supabase/migrations/20260502000200_critical_security_fixes.sql`
+4. `supabase/migrations/20260502000300_pin_server_side_and_rate_limits.sql`
 
 This adds:
 - `customers`, `customer_addresses`

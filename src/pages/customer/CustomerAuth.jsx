@@ -63,7 +63,7 @@ export default function CustomerAuth() {
   const submitPinSetup = async (e) => {
     e.preventDefault()
     setError('')
-    if (pin.length < 4 || pin.length > 6) return setError('PIN must be 4–6 digits')
+    if (pin.length !== 6) return setError('PIN must be exactly 6 digits')
     if (pin !== pinConfirm) return setError('PINs do not match')
     setLoading(true)
     try {
@@ -80,11 +80,16 @@ export default function CustomerAuth() {
     e.preventDefault()
     setError(''); setLoading(true)
     try {
-      const ok = await verifyPin(pin)
-      if (!ok) {
-        setError('Incorrect PIN')
-      } else {
+      const r = await verifyPin(pin)
+      if (r.success) {
         navigate(redirectTo, { replace: true })
+      } else if (r.lockedUntil) {
+        const mins = Math.ceil((new Date(r.lockedUntil) - Date.now()) / 60000)
+        setError(`Too many wrong attempts. Try again in ${mins} min.`)
+      } else if (r.attemptsRemaining != null) {
+        setError(`${r.error || 'Incorrect PIN'} — ${r.attemptsRemaining} attempts left`)
+      } else {
+        setError(r.error || 'Incorrect PIN')
       }
     } catch (err) {
       setError(err.message || 'PIN check failed')
@@ -162,7 +167,7 @@ export default function CustomerAuth() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-              disabled={loading || otp.length < 4}
+              disabled={loading || otp.length !== 6}
               className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Verify'}
@@ -180,19 +185,19 @@ export default function CustomerAuth() {
         {step === STEPS.PIN_SETUP && (
           <form onSubmit={submitPinSetup} className="space-y-4">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Set a PIN</h1>
+              <h1 className="text-xl font-bold text-gray-900">Set a 6-digit PIN</h1>
               <p className="text-sm text-gray-500 mt-1">
                 You'll use this PIN to confirm orders and payments
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">PIN (4–6 digits)</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">PIN</label>
               <input
                 type="password"
                 inputMode="numeric"
                 maxLength={6}
                 value={pin}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
@@ -204,7 +209,7 @@ export default function CustomerAuth() {
                 inputMode="numeric"
                 maxLength={6}
                 value={pinConfirm}
-                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
@@ -212,7 +217,7 @@ export default function CustomerAuth() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || pin.length !== 6 || pinConfirm.length !== 6}
               className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Set PIN & continue'}
@@ -233,7 +238,7 @@ export default function CustomerAuth() {
                 inputMode="numeric"
                 maxLength={6}
                 value={pin}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
                 autoFocus
@@ -242,7 +247,7 @@ export default function CustomerAuth() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
-              disabled={loading || pin.length < 4}
+              disabled={loading || pin.length !== 6}
               className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Continue'}
