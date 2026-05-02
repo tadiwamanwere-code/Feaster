@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Loader, Phone, Star, Bike, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import {
+  getDelivery,
   getOffersForDelivery,
   acceptOffer,
   subscribeToDelivery,
@@ -38,15 +39,19 @@ export default function CustomerTrackOrder() {
       if (cancelled) return
       setOrder(o)
       if (o?.order_type === 'delivery') {
-        const { data: d } = await supabase
+        // Fetch the delivery row first (RLS-allowed for the customer)
+        const { data: deliveryRow } = await supabase
           .from('deliveries')
-          .select('*, drivers(full_name, phone, vehicle_type, vehicle_plate, rating, current_lat, current_lng)')
+          .select('*')
           .eq('order_id', orderId)
           .maybeSingle()
         if (cancelled) return
-        setDelivery(d)
-        if (d) {
-          const off = await getOffersForDelivery(d.id)
+        if (deliveryRow) {
+          // Now hydrate driver info via the SECURITY DEFINER RPC
+          const full = await getDelivery(deliveryRow.id)
+          if (cancelled) return
+          setDelivery(full)
+          const off = await getOffersForDelivery(deliveryRow.id)
           if (!cancelled) setOffers(off || [])
         }
       }

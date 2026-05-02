@@ -73,13 +73,20 @@ export async function placeOrder({
 }
 
 export async function getDelivery(deliveryId) {
-  const { data, error } = await supabase
+  // Customers can't read drivers directly — use the RPC for driver info.
+  const { data: delivery, error } = await supabase
     .from('deliveries')
-    .select('*, drivers(id, full_name, phone, vehicle_type, vehicle_plate, rating, current_lat, current_lng)')
+    .select('*')
     .eq('id', deliveryId)
     .maybeSingle()
   if (error) throw error
-  return data
+  if (!delivery) return null
+  let driver = null
+  if (delivery.driver_id) {
+    const { data: drv } = await supabase.rpc('get_driver_for_delivery', { p_delivery_id: deliveryId })
+    driver = drv?.[0] || null
+  }
+  return { ...delivery, drivers: driver }
 }
 
 export async function getMyDeliveries(limit = 50) {
@@ -153,16 +160,30 @@ export async function makeOffer({ deliveryId, offerAmountUsd, etaMinutes }) {
   return data
 }
 
-// Customer: list open offers for their delivery
+// Customer: list open offers for their delivery (via RPC — drivers table is RLS-locked)
 export async function getOffersForDelivery(deliveryId) {
-  const { data, error } = await supabase
-    .from('dispatch_offers')
-    .select('*, drivers(id, full_name, vehicle_type, vehicle_plate, rating, total_deliveries, current_lat, current_lng)')
-    .eq('delivery_id', deliveryId)
-    .eq('status', 'open')
-    .order('offer_amount_usd', { ascending: true })
+  const { data, error } = await supabase.rpc('get_offers_for_my_delivery', { p_delivery_id: deliveryId })
   if (error) throw error
-  return data
+  // Map to legacy shape used by CustomerTrackOrder.jsx
+  return (data || []).map(o => ({
+    id: o.offer_id,
+    delivery_id: deliveryId,
+    driver_id: o.driver_id,
+    offer_amount_usd: o.offer_amount_usd,
+    est_arrival_min: o.est_arrival_min,
+    expires_at: o.expires_at,
+    status: 'open',
+    drivers: {
+      id: o.driver_id,
+      full_name: o.driver_name,
+      vehicle_type: o.vehicle_type,
+      vehicle_plate: o.vehicle_plate,
+      rating: o.rating,
+      total_deliveries: o.total_deliveries,
+      current_lat: o.current_lat,
+      current_lng: o.current_lng,
+    },
+  }))
 }
 
 // Customer: accept an offer (assigns driver, charges commission via SQL)
