@@ -146,7 +146,7 @@ export default function CustomerCheckout() {
   if (!restaurant) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
-        <Loader className="w-6 h-6 animate-spin text-orange-600" />
+        <Loader className="w-6 h-6 animate-spin text-black" />
       </div>
     )
   }
@@ -166,7 +166,7 @@ export default function CustomerCheckout() {
               onClick={() => setOrderType(key)}
               className={`p-3 rounded-lg border text-center ${
                 orderType === key
-                  ? 'border-orange-500 bg-orange-50 text-orange-700'
+                  ? 'border-black bg-black/5 text-black'
                   : 'border-gray-200 text-gray-600'
               }`}
             >
@@ -205,7 +205,7 @@ export default function CustomerCheckout() {
             onChange={setDropoff}
           />
           {dropoff?.lat && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
+            <div className="bg-black/5 border border-black/10 rounded-lg p-3 text-sm">
               {quoting ? (
                 <span className="text-gray-500 flex items-center gap-2">
                   <Loader className="w-4 h-4 animate-spin" /> Calculating fee…
@@ -216,7 +216,7 @@ export default function CustomerCheckout() {
                   <div className="flex justify-between"><span>Base fee</span><span>${Number(deliveryQuote.base_fee).toFixed(2)}</span></div>
                   <div className="flex justify-between"><span>Per-km</span><span>${Number(deliveryQuote.per_km_fee).toFixed(2)}/km</span></div>
                   <div className="flex justify-between"><span>Service fee</span><span>${Number(deliveryQuote.service_fee).toFixed(2)}</span></div>
-                  <div className="flex justify-between font-semibold border-t border-orange-200 pt-1 mt-1">
+                  <div className="flex justify-between font-semibold border-t border-black/10 pt-1 mt-1">
                     <span>Delivery total</span><span>${Number(deliveryQuote.total).toFixed(2)}</span>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export default function CustomerCheckout() {
                   onClick={() => setPaymentMethod(p.key)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border ${
                     selected
-                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      ? 'border-black bg-black/5 text-black'
                       : 'border-gray-200 text-gray-700'
                   } ${!allowed ? 'opacity-40' : ''}`}
                 >
@@ -296,7 +296,7 @@ export default function CustomerCheckout() {
       <button
         type="submit"
         disabled={submitting}
-        className="fixed bottom-20 inset-x-4 max-w-2xl mx-auto bg-orange-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
+        className="fixed bottom-20 inset-x-4 max-w-2xl mx-auto bg-black text-white py-3 rounded-xl text-sm font-semibold hover:bg-black disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {submitting && <Loader className="w-4 h-4 animate-spin" />}
         Place order — ${total.toFixed(2)}

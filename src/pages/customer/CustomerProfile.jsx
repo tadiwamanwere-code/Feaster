@@ -103,7 +103,7 @@ export default function CustomerProfile() {
         <button
           onClick={saveProfile}
           disabled={savingProfile}
-          className="w-full bg-orange-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-50"
+          className="w-full bg-black text-white py-2.5 rounded-lg text-sm font-medium hover:bg-black disabled:opacity-50"
         >Save profile</button>
       </div>
 
@@ -112,7 +112,7 @@ export default function CustomerProfile() {
           <h2 className="font-semibold text-gray-900">Saved addresses</h2>
           <button
             onClick={() => setShowAdd(s => !s)}
-            className="text-sm text-orange-600 hover:text-orange-700 flex items-center gap-1"
+            className="text-sm text-black hover:text-black flex items-center gap-1"
           ><Plus className="w-4 h-4" /> Add</button>
         </div>
 
@@ -125,7 +125,7 @@ export default function CustomerProfile() {
             <li key={a.id} className="flex items-start justify-between border border-gray-200 rounded-lg p-3">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900">
-                  {a.label} {a.is_default && <span className="text-xs text-orange-600 ml-1">(default)</span>}
+                  {a.label} {a.is_default && <span className="text-xs text-black ml-1">(default)</span>}
                 </p>
                 <p className="text-xs text-gray-500 truncate">{a.line1}</p>
               </div>
@@ -163,7 +163,7 @@ export default function CustomerProfile() {
             <button
               onClick={handleAddAddress}
               disabled={saving}
-              className="w-full bg-orange-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-50"
+              className="w-full bg-black text-white py-2.5 rounded-lg text-sm font-medium hover:bg-black disabled:opacity-50"
             >Save address</button>
           </div>
         )}

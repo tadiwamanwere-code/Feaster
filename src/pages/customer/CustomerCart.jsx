@@ -16,7 +16,7 @@ export default function CustomerCart() {
           <p className="text-sm text-gray-500 mt-1">Browse restaurants and add items</p>
           <button
             onClick={() => navigate('/app')}
-            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700"
+            className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-black"
           >Browse</button>
         </div>
       </div>
@@ -54,7 +54,7 @@ export default function CustomerCart() {
                   <span className="text-sm w-5 text-center">{item.quantity}</span>
                   <button
                     onClick={() => cart.increment(id)}
-                    className="w-7 h-7 bg-orange-600 text-white rounded-full flex items-center justify-center"
+                    className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center"
                   ><Plus className="w-3.5 h-3.5" /></button>
                 </div>
                 <button
@@ -74,7 +74,7 @@ export default function CustomerCart() {
 
       <button
         onClick={() => navigate('/app/checkout')}
-        className="w-full bg-orange-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-orange-700"
+        className="w-full bg-black text-white py-3 rounded-xl text-sm font-semibold hover:bg-black"
       >Checkout</button>
     </div>
   )

@@ -19,15 +19,15 @@ export default function CustomerLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream-50">
-        <div className="w-8 h-8 border-4 border-feaster-yellow border-t-feaster-black rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-4 border-black/10 border-t-black rounded-full animate-spin" />
       </div>
     )
   }
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-cream-50 pb-28">
+    <div className="min-h-screen bg-white pb-28">
       <main className="max-w-2xl mx-auto">
         <Outlet />
       </main>
@@ -35,7 +35,7 @@ export default function CustomerLayout() {
       {/* Floating black pill nav */}
       <nav className="fixed bottom-0 inset-x-0 z-30 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2 pointer-events-none">
         <div
-          className="max-w-[360px] mx-auto bg-feaster-black rounded-full px-2 py-2 flex items-stretch gap-1 pointer-events-auto"
+          className="max-w-[360px] mx-auto bg-black rounded-full px-2 py-2 flex items-stretch gap-1 pointer-events-auto"
           style={{ boxShadow: '0 14px 32px -10px rgba(10,10,10,0.55), 0 4px 10px -2px rgba(10,10,10,0.35)' }}
         >
           {tabs.map(t => (
@@ -46,7 +46,7 @@ export default function CustomerLayout() {
               className={({ isActive }) =>
                 `relative h-12 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden transition-all duration-300 ease-out ${
                   isActive
-                    ? 'flex-[2] bg-white text-feaster-black px-5 gap-2'
+                    ? 'flex-[2] bg-white text-black px-5 gap-2'
                     : 'flex-1 text-white/85 hover:text-white px-2'
                 }`
               }

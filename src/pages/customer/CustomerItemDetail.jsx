@@ -88,8 +88,8 @@ export default function CustomerItemDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream-50">
-        <div className="h-72 bg-cream-100 animate-pulse" />
+      <div className="min-h-screen bg-white">
+        <div className="h-72 bg-[#F4F4F4] animate-pulse" />
         <div className="p-5 space-y-3">
           <div className="h-6 w-2/3 bg-white rounded animate-pulse" />
           <div className="h-4 w-1/2 bg-white rounded animate-pulse" />
@@ -100,10 +100,10 @@ export default function CustomerItemDetail() {
   }
   if (!item) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream-50 p-6 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-white p-6 text-center">
         <div>
-          <p className="text-ink-700 font-semibold">Item not found</p>
-          <button onClick={() => navigate(-1)} className="mt-3 text-orange-600 font-semibold">Go back</button>
+          <p className="text-black/75 font-semibold">Item not found</p>
+          <button onClick={() => navigate(-1)} className="mt-3 text-black font-semibold">Go back</button>
         </div>
       </div>
     )
@@ -115,7 +115,7 @@ export default function CustomerItemDetail() {
   const shortDesc = longDesc ? desc.slice(0, 140) + '…' : desc
 
   return (
-    <div className="min-h-screen bg-cream-50 pb-32">
+    <div className="min-h-screen bg-white pb-32">
       {/* Top header overlay */}
       <header className="absolute top-0 inset-x-0 z-20 px-5 pt-6 flex items-center justify-between">
         <button
@@ -123,9 +123,9 @@ export default function CustomerItemDetail() {
           aria-label="Back"
           className="w-11 h-11 rounded-full bg-white/95 backdrop-blur shadow-soft flex items-center justify-center active:scale-95 transition-transform"
         >
-          <ArrowLeft className="w-5 h-5 text-ink-900" />
+          <ArrowLeft className="w-5 h-5 text-black" />
         </button>
-        <div className="text-sm font-bold text-ink-900 bg-white/95 backdrop-blur px-4 h-11 rounded-full flex items-center shadow-soft">
+        <div className="text-sm font-bold text-black bg-white/95 backdrop-blur px-4 h-11 rounded-full flex items-center shadow-soft">
           Details
         </div>
         <button
@@ -133,12 +133,12 @@ export default function CustomerItemDetail() {
           aria-label="Favourite"
           className="w-11 h-11 rounded-full bg-white/95 backdrop-blur shadow-soft flex items-center justify-center active:scale-95 transition-transform"
         >
-          <Heart className={`w-5 h-5 ${favourite ? 'fill-red-500 text-red-500' : 'text-ink-900'}`} />
+          <Heart className={`w-5 h-5 ${favourite ? 'fill-red-500 text-red-500' : 'text-black'}`} />
         </button>
       </header>
 
       {/* Hero image */}
-      <div className="relative aspect-square max-h-[60vh] bg-gradient-to-br from-cream-100 to-cream-200 overflow-hidden">
+      <div className="relative aspect-square max-h-[60vh] bg-gradient-to-br from-[#F4F4F4] to-[#E5E5E5] overflow-hidden">
         {item.image_url ? (
           <img
             src={item.image_url}
@@ -148,40 +148,40 @@ export default function CustomerItemDetail() {
         ) : (
           <div className="w-full h-full flex items-center justify-center text-9xl">🍽️</div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream-50 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative -mt-6 bg-cream-50 rounded-t-[28px] px-5 pt-6 space-y-5">
+      <div className="relative -mt-6 bg-white rounded-t-[28px] px-5 pt-6 space-y-5">
         {/* Title row */}
         <div>
-          <h1 className="text-2xl font-extrabold text-ink-900 tracking-tight">{item.name}</h1>
-          <div className="mt-1 flex items-center gap-2 text-sm text-ink-500">
-            <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-            <span className="font-semibold text-ink-900">{Number(r?.rating || 4.9).toFixed(1)}</span>
-            <span className="text-ink-400">(225 reviews)</span>
+          <h1 className="text-2xl font-extrabold text-black tracking-tight">{item.name}</h1>
+          <div className="mt-1 flex items-center gap-2 text-sm text-black/55">
+            <Star className="w-4 h-4 fill-black text-black" />
+            <span className="font-semibold text-black">{Number(r?.rating || 4.9).toFixed(1)}</span>
+            <span className="text-black/40">(225 reviews)</span>
           </div>
         </div>
 
         {/* Restaurant + price + qty */}
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-ink-400 font-bold">Restaurant</div>
-            <Link to={`/app/r/${r?.slug}`} className="text-sm font-bold text-ink-900 truncate block">
+            <div className="text-[11px] uppercase tracking-wider text-black/40 font-bold">Restaurant</div>
+            <Link to={`/app/r/${r?.slug}`} className="text-sm font-bold text-black truncate block">
               {r?.name}
             </Link>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-ink-400 font-bold">Price</div>
-            <div className="text-base font-bold text-orange-600">${unitPrice.toFixed(2)}</div>
+            <div className="text-[11px] uppercase tracking-wider text-black/40 font-bold">Price</div>
+            <div className="text-base font-bold text-black">${unitPrice.toFixed(2)}</div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-ink-400 font-bold">Quantity</div>
+            <div className="text-[11px] uppercase tracking-wider text-black/40 font-bold">Quantity</div>
             <div className="flex items-center gap-2 mt-0.5">
               <button
                 onClick={() => setQty(q => Math.max(1, q - 1))}
                 aria-label="Decrease"
-                className="w-8 h-8 rounded-full bg-white border border-ink-200/40 flex items-center justify-center active:scale-90 transition-transform"
+                className="w-8 h-8 rounded-full bg-white border border-black/15 flex items-center justify-center active:scale-90 transition-transform"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -191,7 +191,7 @@ export default function CustomerItemDetail() {
               <button
                 onClick={() => setQty(q => q + 1)}
                 aria-label="Increase"
-                className="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center shadow-pop active:scale-90 transition-transform"
+                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center  active:scale-90 transition-transform"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -201,7 +201,7 @@ export default function CustomerItemDetail() {
 
         {/* Size selector */}
         <div>
-          <div className="text-sm font-bold text-ink-900 mb-2">Size</div>
+          <div className="text-sm font-bold text-black mb-2">Size</div>
           <div className="flex gap-2">
             {SIZE_OPTIONS.map(s => {
               const active = size === s.key
@@ -211,8 +211,8 @@ export default function CustomerItemDetail() {
                   onClick={() => setSize(s.key)}
                   className={`flex-1 h-11 rounded-full text-sm font-semibold transition-all ${
                     active
-                      ? 'bg-orange-600 text-white shadow-pop'
-                      : 'bg-white text-ink-700 border border-ink-200/40'
+                      ? 'bg-black text-white '
+                      : 'bg-white text-black/75 border border-black/15'
                   }`}
                 >
                   {s.label}
@@ -225,12 +225,12 @@ export default function CustomerItemDetail() {
         {/* Description */}
         {desc && (
           <div>
-            <p className="text-sm text-ink-700 leading-relaxed">
+            <p className="text-sm text-black/75 leading-relaxed">
               {showFullDesc || !longDesc ? desc : shortDesc}
               {longDesc && (
                 <button
                   onClick={() => setShowFullDesc(s => !s)}
-                  className="ml-1 text-orange-600 font-semibold"
+                  className="ml-1 text-black font-semibold"
                 >
                   {showFullDesc ? 'Read less' : 'Read More...'}
                 </button>
@@ -241,36 +241,36 @@ export default function CustomerItemDetail() {
 
         {/* Notes */}
         <div>
-          <label className="text-sm font-bold text-ink-900 mb-2 block">Special instructions</label>
+          <label className="text-sm font-bold text-black mb-2 block">Special instructions</label>
           <input
             type="text"
             value={notes}
             onChange={e => setNotes(e.target.value)}
             placeholder="e.g. no onions, extra spicy"
-            className="w-full h-12 px-4 bg-white border border-ink-200/40 rounded-2xl text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+            className="w-full h-12 px-4 bg-white border border-black/15 rounded-2xl text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
           />
         </div>
 
         {/* Similar dishes */}
         {similar.length > 0 && (
           <div>
-            <h2 className="text-base font-bold text-ink-900 mb-3">Similar Dishes</h2>
+            <h2 className="text-base font-bold text-black mb-3">Similar Dishes</h2>
             <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
               {similar.map(s => (
                 <Link
                   key={s.id}
                   to={`/app/r/${slug}/item/${s.id}`}
-                  className="shrink-0 w-36 bg-white rounded-2xl border border-ink-200/30 overflow-hidden active:scale-[0.98] transition-transform"
+                  className="shrink-0 w-36 bg-white rounded-2xl border border-black/10 overflow-hidden active:scale-[0.98] transition-transform"
                 >
-                  <div className="aspect-square bg-cream-100">
+                  <div className="aspect-square bg-[#F4F4F4]">
                     {s.image_url && (
                       <img src={s.image_url} alt="" loading="lazy" className="w-full h-full object-cover" />
                     )}
                   </div>
                   <div className="p-2">
-                    <p className="text-xs font-bold text-ink-900 truncate">{s.name}</p>
-                    <p className="text-[10px] text-ink-500 truncate">{r?.name}</p>
-                    <p className="text-xs font-bold text-orange-600 mt-0.5">${Number(s.price).toFixed(2)}</p>
+                    <p className="text-xs font-bold text-black truncate">{s.name}</p>
+                    <p className="text-[10px] text-black/55 truncate">{r?.name}</p>
+                    <p className="text-xs font-bold text-black mt-0.5">${Number(s.price).toFixed(2)}</p>
                   </div>
                 </Link>
               ))}
@@ -280,17 +280,17 @@ export default function CustomerItemDetail() {
       </div>
 
       {/* Bottom action bar */}
-      <div className="fixed bottom-0 inset-x-0 z-30 bg-cream-50/95 backdrop-blur border-t border-ink-200/30 px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-black/10 px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <button
             onClick={addToCart}
-            className="flex-1 h-13 py-3.5 rounded-full bg-white border-2 border-orange-600 text-orange-600 font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            className="flex-1 h-13 py-3.5 rounded-full bg-white border-2 border-black text-black font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
           >
             <ShoppingBag className="w-4 h-4" /> Add to Cart
           </button>
           <button
             onClick={orderNow}
-            className="flex-1 h-13 py-3.5 rounded-full bg-orange-600 text-white font-bold flex items-center justify-center gap-2 shadow-pop active:scale-[0.98] transition-transform"
+            className="flex-1 h-13 py-3.5 rounded-full bg-black text-white font-bold flex items-center justify-center gap-2  active:scale-[0.98] transition-transform"
           >
             <Zap className="w-4 h-4" /> Order Now · ${total.toFixed(2)}
           </button>

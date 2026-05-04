@@ -6,8 +6,8 @@
   "id": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ea580c",
-  "theme_color": "#ea580c",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "categories": ["food", "lifestyle"],
   "icons": [
     {

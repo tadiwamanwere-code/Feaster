@@ -93,7 +93,7 @@ export default function CustomerTrackOrder() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader className="w-6 h-6 animate-spin text-orange-600" />
+        <Loader className="w-6 h-6 animate-spin text-black" />
       </div>
     )
   }
@@ -121,8 +121,8 @@ export default function CustomerTrackOrder() {
       <div className="p-4 space-y-4">
         {/* Pre-order ticket */}
         {order.order_type === 'pre_order' && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
-            <p className="text-xs font-medium text-orange-700">PICKUP TICKET</p>
+          <div className="bg-black/5 border border-black/10 rounded-xl p-4 text-center">
+            <p className="text-xs font-medium text-black">PICKUP TICKET</p>
             <p className="text-2xl font-bold tracking-widest font-mono mt-1">
               {order.id.slice(0, 6).toUpperCase()}
             </p>
@@ -146,14 +146,14 @@ export default function CustomerTrackOrder() {
             </p>
             {offers.length === 0 ? (
               <div className="text-center py-6 text-sm text-gray-500">
-                <Loader className="w-5 h-5 animate-spin mx-auto mb-2 text-orange-600" />
+                <Loader className="w-5 h-5 animate-spin mx-auto mb-2 text-black" />
                 Waiting for driver offers…
               </div>
             ) : (
               <ul className="space-y-2">
                 {offers.map(o => (
                   <li key={o.id} className="flex items-center gap-3 border border-gray-200 rounded-lg p-3">
-                    <div className="w-10 h-10 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center font-semibold">
+                    <div className="w-10 h-10 bg-black/10 text-black rounded-full flex items-center justify-center font-semibold">
                       {o.drivers?.full_name?.[0] || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -173,7 +173,7 @@ export default function CustomerTrackOrder() {
                       <button
                         onClick={() => handleAccept(o)}
                         disabled={accepting}
-                        className="mt-1 px-3 py-1.5 bg-orange-600 text-white rounded-full text-xs font-medium hover:bg-orange-700 disabled:opacity-50"
+                        className="mt-1 px-3 py-1.5 bg-black text-white rounded-full text-xs font-medium hover:bg-black disabled:opacity-50"
                       >Pick</button>
                     </div>
                   </li>
@@ -209,7 +209,7 @@ export default function CustomerTrackOrder() {
               {delivery.drivers?.phone && (
                 <a
                   href={`tel:${delivery.drivers.phone}`}
-                  className="mt-2 inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700"
+                  className="mt-2 inline-flex items-center gap-1 text-sm text-black hover:text-black"
                 >
                   <Phone className="w-4 h-4" /> Call driver
                 </a>
@@ -230,7 +230,7 @@ export default function CustomerTrackOrder() {
                 return (
                   <li key={s.key} className="flex items-center gap-3">
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      done ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-400'
+                      done ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {done && <CheckCircle2 className="w-4 h-4" />}
                     </div>

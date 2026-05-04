@@ -26,17 +26,11 @@
   --color-ink-400: #a0a0b8;
   --color-ink-200: #e6e6f0;
 
-  /* Warm cream background */
-  --color-cream-50: #fffaf6;
-  --color-cream-100: #fff3ea;
-  --color-cream-200: #ffe6d4;
-
-  /* Feaster brand: bold yellow + ink black */
-  --color-feaster-yellow: #FFD60A;
-  --color-feaster-yellow-soft: #FFE65A;
-  --color-feaster-yellow-deep: #E6BF00;
-  --color-feaster-black: #0A0A0A;
-  --color-feaster-jet: #1A1A1A;
+  /* Pure B&W brand */
+  --color-feaster-black: #000000;
+  --color-feaster-jet:   #0A0A0A;
+  --color-feaster-soft:  #F4F4F4;
+  --color-feaster-line:  #E5E5E5;
 
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   --font-logo: "Pacifico", "Plus Jakarta Sans", cursive;
@@ -55,8 +49,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ECEAF6;
-  color: #1a1a2e;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 /* Hide scrollbar */

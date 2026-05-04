@@ -21,9 +21,9 @@ function ProgressDots({ step, total = 3 }) {
         <div
           key={i}
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            i === step ? 'w-8 bg-feaster-black'
-            : i < step ? 'w-3 bg-feaster-black/70'
-            : 'w-3 bg-feaster-black/25'
+            i === step ? 'w-8 bg-black'
+            : i < step ? 'w-3 bg-black/70'
+            : 'w-3 bg-black/15'
           }`}
         />
       ))}
@@ -37,8 +37,7 @@ function PrimaryButton({ children, loading, disabled, onClick, type = 'button' }
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className="group relative w-full h-14 rounded-full bg-white border-[3px] border-feaster-black text-feaster-black font-extrabold tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 transition-transform active:scale-[0.97] hover:-translate-y-0.5"
-      style={{ boxShadow: '5px 5px 0 0 #0A0A0A' }}
+      className="group relative w-full h-14 rounded-full bg-black text-white font-extrabold tracking-wide flex items-center justify-center gap-2 disabled:opacity-40 transition-all active:scale-[0.97] hover:-translate-y-0.5"
     >
       {loading ? <Loader className="w-5 h-5 animate-spin" /> : children}
     </button>
@@ -106,8 +105,8 @@ function OtpBoxes({ value, onChange, length = OTP_LEN, autoFocus }) {
             autoFocus={autoFocus && i === 0}
             className={`w-12 h-14 text-center text-2xl font-extrabold rounded-2xl border-2 outline-none transition-all ${
               filled
-                ? 'bg-feaster-black text-white border-feaster-black shadow-[3px_3px_0_0_#0A0A0A]'
-                : 'bg-white text-feaster-black border-feaster-black/20 focus:border-feaster-black focus:shadow-[3px_3px_0_0_#0A0A0A]'
+                ? 'bg-black text-white border-black'
+                : 'bg-white text-black border-black/15 focus:border-black'
             }`}
           />
         )
@@ -242,21 +241,16 @@ export default function CustomerAuth() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] bg-feaster-yellow overflow-hidden">
-      {/* Black accent shapes */}
-      <div className="absolute -top-32 -right-24 w-72 h-72 bg-feaster-black rounded-full opacity-95" />
-      <div className="absolute -bottom-40 -left-24 w-80 h-80 bg-feaster-black rounded-full opacity-95" />
-
-      <div className="relative z-10 min-h-[100dvh] flex flex-col px-6 pt-12 pb-8">
+    <div className="min-h-[100dvh] bg-white">
+      <div className="min-h-[100dvh] flex flex-col px-6 pt-12 pb-8 max-w-md mx-auto">
         {/* Top bar: back + progress */}
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={goBack}
             aria-label="Back"
-            className="w-11 h-11 rounded-full bg-white border-2 border-feaster-black flex items-center justify-center active:scale-95 transition-transform"
-            style={{ boxShadow: '3px 3px 0 0 #0A0A0A' }}
+            className="w-11 h-11 rounded-full bg-white border-2 border-black flex items-center justify-center active:scale-95 transition-transform"
           >
-            <ArrowLeft className="w-5 h-5 text-feaster-black" />
+            <ArrowLeft className="w-5 h-5 text-black" />
           </button>
           {step !== STEPS.PIN_LOGIN && <ProgressDots step={stepIndex} total={3} />}
           <div className="w-11" />
@@ -266,14 +260,14 @@ export default function CustomerAuth() {
         {step === STEPS.PHONE && (
           <form onSubmit={submitPhone} className="flex-1 flex flex-col">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black text-feaster-black tracking-tight">Enter your phone number.</h1>
-              <p className="text-sm text-feaster-black/70 max-w-xs">
+              <h1 className="text-3xl font-black text-black tracking-tight">Enter your phone number.</h1>
+              <p className="text-sm text-black/65 max-w-xs">
                 We'll send a verification code to confirm it's you.
               </p>
             </div>
 
             <div className="mt-8">
-              <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">
+              <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">
                 Phone number
               </label>
               <div className="relative">
@@ -282,13 +276,13 @@ export default function CustomerAuth() {
                   value={phone}
                   onChange={(e) => setPhoneInput(e.target.value)}
                   placeholder="+263 77 123 4567"
-                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-base font-bold text-feaster-black placeholder-feaster-black/30 focus:outline-none transition-shadow focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                  className="w-full h-14 px-5 bg-white border-2 border-black rounded-2xl text-base font-bold text-black placeholder-black/30 focus:outline-none transition-shadow focus:border-black"
                   required
                   autoFocus
                 />
               </div>
               {phone && (
-                <p className="text-xs text-feaster-black/60 mt-2 font-medium">
+                <p className="text-xs text-black/55 mt-2 font-medium">
                   Sending to: <span className="font-bold">{normalizePhone(phone) || 'Invalid format'}</span>
                 </p>
               )}
@@ -308,12 +302,12 @@ export default function CustomerAuth() {
         {step === STEPS.OTP && (
           <form onSubmit={submitOtp} className="flex-1 flex flex-col">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black text-feaster-black tracking-tight">
+              <h1 className="text-3xl font-black text-black tracking-tight">
                 Enter OTP <br/>verification code.
               </h1>
-              <p className="text-sm text-feaster-black/70">
+              <p className="text-sm text-black/65">
                 Verification code has been sent to{' '}
-                <span className="font-bold text-feaster-black">{normalizedPhone}</span>
+                <span className="font-bold text-black">{normalizedPhone}</span>
               </p>
             </div>
 
@@ -323,14 +317,14 @@ export default function CustomerAuth() {
 
             <div className="mt-6 text-center">
               {resendIn > 0 ? (
-                <p className="text-sm text-feaster-black/70 font-medium">
+                <p className="text-sm text-black/65 font-medium">
                   Didn't receive the code? <span className="font-bold">Resend ({resendIn}s)</span>
                 </p>
               ) : (
                 <button
                   type="button"
                   onClick={handleResend}
-                  className="text-sm font-bold text-feaster-black underline underline-offset-4"
+                  className="text-sm font-bold text-black underline underline-offset-4"
                 >
                   Didn't receive the code? Resend
                 </button>
@@ -351,39 +345,39 @@ export default function CustomerAuth() {
         {step === STEPS.PIN_SETUP && (
           <form onSubmit={submitPinSetup} className="flex-1 flex flex-col">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 text-feaster-black">
+              <div className="inline-flex items-center gap-2 text-black">
                 <CheckCircle2 className="w-5 h-5" />
                 <span className="text-xs font-extrabold tracking-wider uppercase">Verification Success</span>
               </div>
-              <h1 className="text-3xl font-black text-feaster-black tracking-tight">Create your PIN.</h1>
-              <p className="text-sm text-feaster-black/70 max-w-xs">
+              <h1 className="text-3xl font-black text-black tracking-tight">Create your PIN.</h1>
+              <p className="text-sm text-black/65 max-w-xs">
                 Choose a 6-digit PIN. You'll use it to confirm orders and payments.
               </p>
             </div>
 
             <div className="mt-8 space-y-5">
               <div>
-                <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">PIN</label>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">PIN</label>
                 <input
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
                   value={pin}
                   onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                  className="w-full h-14 px-5 bg-white border-2 border-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-black focus:outline-none focus:border-black"
                   required
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">Confirm PIN</label>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">Confirm PIN</label>
                 <input
                   type="password"
                   inputMode="numeric"
                   maxLength={6}
                   value={pinConfirm}
                   onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                  className="w-full h-14 px-5 bg-white border-2 border-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-black focus:outline-none focus:border-black"
                   required
                 />
               </div>
@@ -404,12 +398,12 @@ export default function CustomerAuth() {
           <form onSubmit={submitPinLogin} className="flex-1 flex flex-col">
             <div className="space-y-2">
               <h1
-                className="text-5xl text-feaster-black"
+                className="text-5xl text-black"
                 style={{ fontFamily: 'Pacifico, cursive' }}
               >
                 Welcome back
               </h1>
-              <p className="text-sm text-feaster-black/70">Enter your 6-digit PIN to continue.</p>
+              <p className="text-sm text-black/65">Enter your 6-digit PIN to continue.</p>
             </div>
 
             <div className="mt-10">
@@ -419,7 +413,7 @@ export default function CustomerAuth() {
                 maxLength={6}
                 value={pin}
                 onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full h-16 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-3xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                className="w-full h-16 px-5 bg-white border-2 border-black rounded-2xl text-center text-3xl font-extrabold tracking-[0.5em] text-black focus:outline-none focus:border-black"
                 required
                 autoFocus
                 placeholder="••••••"

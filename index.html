@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#ea580c" />
+    <meta name="theme-color" content="#000000" />
     <meta name="description" content="Feaster - Order food faster. Scan, order, eat. Fast food ordering for Africa." />
     <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,33 +19,24 @@
     <title>Feaster — Order Food Faster</title>
 
     <style>
-      html, body { margin: 0; padding: 0; background: #ea580c; }
+      html, body { margin: 0; padding: 0; background: #000000; }
       #initial-splash {
         position: fixed; inset: 0; z-index: 9999;
-        background: #ea580c;
+        background: #000000;
         display: flex; align-items: center; justify-content: center;
         flex-direction: column;
-        overflow: hidden;
       }
-      #initial-splash .blob-tl { position: absolute; top: -120px; left: -80px; width: 280px; height: 280px; background: #0A0A0A; border-radius: 50%; opacity: 0.95; filter: blur(0.5px); }
-      #initial-splash .blob-br { position: absolute; bottom: -140px; right: -100px; width: 320px; height: 320px; background: #0A0A0A; border-radius: 50%; opacity: 0.92; }
-      #initial-splash .pellet  { position: absolute; width: 14px; height: 14px; background: #0A0A0A; border-radius: 50%; }
-      #initial-splash .p1 { top: 18%; right: 14%; animation: splashPellet 2.4s ease infinite; }
-      #initial-splash .p2 { bottom: 22%; left: 18%; width: 10px; height: 10px; animation: splashPellet 2.4s ease 0.4s infinite; }
       #initial-splash .word {
-        position: relative; z-index: 2;
         font: 400 84px/1 'Pacifico', cursive;
         color: #ffffff;
         letter-spacing: 0.01em;
-        text-shadow: 4px 4px 0 #0A0A0A;
         animation: splashWord 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both;
       }
       #initial-splash .tag {
-        position: relative; z-index: 2;
         margin-top: 18px;
         padding: 6px 14px;
-        background: #0A0A0A;
-        color: #FFD60A;
+        background: #ffffff;
+        color: #000000;
         font: 800 11px/1 'Plus Jakarta Sans', system-ui, sans-serif;
         letter-spacing: 0.28em;
         text-transform: uppercase;
@@ -54,17 +45,12 @@
       }
       @keyframes splashWord { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
       @keyframes splashRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes splashPellet { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.5; } }
       .splash-hide { animation: splashOut 0.4s ease forwards !important; pointer-events: none; }
       @keyframes splashOut { to { opacity: 0; transform: scale(1.04); } }
     </style>
   </head>
   <body>
     <div id="initial-splash" aria-hidden="true">
-      <div class="blob-tl"></div>
-      <div class="blob-br"></div>
-      <div class="pellet p1"></div>
-      <div class="pellet p2"></div>
       <div class="word">Feaster</div>
       <div class="tag">Order Food Faster</div>
     </div>

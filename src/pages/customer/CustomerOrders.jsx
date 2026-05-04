@@ -14,7 +14,7 @@ const ORDER_TYPE_ICONS = {
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-800',
   confirmed: 'bg-blue-100 text-blue-800',
-  preparing: 'bg-orange-100 text-orange-800',
+  preparing: 'bg-black/10 text-orange-800',
   ready: 'bg-emerald-100 text-emerald-800',
   completed: 'bg-gray-100 text-gray-700',
   cancelled: 'bg-red-100 text-red-700',
