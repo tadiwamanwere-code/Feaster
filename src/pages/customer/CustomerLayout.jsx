@@ -1,20 +1,17 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { Home, Package, ShoppingBag, User } from 'lucide-react'
+import { Home, ClipboardList, User } from 'lucide-react'
 import { useCustomerAuth } from '../../context/CustomerAuthContext'
-import { useCart } from '../../context/CartContext'
 import { useEffect } from 'react'
 
 const tabs = [
-  { to: '/app',         icon: Home,        label: 'Home',    end: true },
-  { to: '/app/orders',  icon: Package,     label: 'Orders' },
-  { to: '/app/cart',    icon: ShoppingBag, label: 'Cart' },
-  { to: '/app/profile', icon: User,        label: 'Profile' },
+  { to: '/app',         icon: Home,          label: 'Home',    end: true },
+  { to: '/app/orders',  icon: ClipboardList, label: 'Orders' },
+  { to: '/app/profile', icon: User,          label: 'Profile' },
 ]
 
 export default function CustomerLayout() {
   const { user, loading } = useCustomerAuth()
   const navigate = useNavigate()
-  const { itemCount } = useCart()
 
   useEffect(() => {
     if (!loading && !user) navigate('/app/auth', { replace: true })
@@ -23,56 +20,51 @@ export default function CustomerLayout() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream-50">
-        <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-feaster-yellow border-t-feaster-black rounded-full animate-spin" />
       </div>
     )
   }
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-cream-50 pb-24">
+    <div className="min-h-screen bg-cream-50 pb-28">
       <main className="max-w-2xl mx-auto">
         <Outlet />
       </main>
 
-      {/* Bottom tab bar */}
-      <nav
-        className="fixed bottom-0 inset-x-0 z-30 px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 bg-cream-50/85 backdrop-blur-md"
-      >
-        <div className="max-w-2xl mx-auto bg-white rounded-full border border-ink-200/40 shadow-shell px-2 py-1.5 flex items-center justify-between">
-          {tabs.map(t => {
-            const isCart = t.to === '/app/cart'
-            return (
-              <NavLink
-                key={t.to}
-                to={t.to}
-                end={t.end}
-                className={({ isActive }) =>
-                  `relative flex items-center justify-center gap-2 px-3 h-11 rounded-full font-semibold text-sm transition-all ${
-                    isActive
-                      ? 'bg-orange-600 text-white shadow-pop'
-                      : 'text-ink-500 hover:text-ink-900'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <t.icon className="w-5 h-5 shrink-0" />
-                    {isActive && <span className="text-[13px]">{t.label}</span>}
-                    {isCart && itemCount > 0 && (
-                      <span
-                        className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                          isActive ? 'bg-white text-orange-600' : 'bg-orange-600 text-white'
-                        }`}
-                      >
-                        {itemCount}
-                      </span>
-                    )}
-                  </>
-                )}
-              </NavLink>
-            )
-          })}
+      {/* Floating black pill nav */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2 pointer-events-none">
+        <div
+          className="max-w-[360px] mx-auto bg-feaster-black rounded-full px-2 py-2 flex items-stretch gap-1 pointer-events-auto"
+          style={{ boxShadow: '0 14px 32px -10px rgba(10,10,10,0.55), 0 4px 10px -2px rgba(10,10,10,0.35)' }}
+        >
+          {tabs.map(t => (
+            <NavLink
+              key={t.to}
+              to={t.to}
+              end={t.end}
+              className={({ isActive }) =>
+                `relative h-12 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden transition-all duration-300 ease-out ${
+                  isActive
+                    ? 'flex-[2] bg-white text-feaster-black px-5 gap-2'
+                    : 'flex-1 text-white/85 hover:text-white px-2'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <t.icon className="w-5 h-5 shrink-0" strokeWidth={2.4} />
+                  <span
+                    className={`whitespace-nowrap transition-all duration-300 ${
+                      isActive ? 'max-w-[80px] opacity-100' : 'max-w-0 opacity-0'
+                    }`}
+                  >
+                    {t.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
         </div>
       </nav>
     </div>

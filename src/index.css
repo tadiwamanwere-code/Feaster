@@ -26,12 +26,20 @@
   --color-ink-400: #a0a0b8;
   --color-ink-200: #e6e6f0;
 
-  /* Warm cream background (Eatsy-inspired) */
+  /* Warm cream background */
   --color-cream-50: #fffaf6;
   --color-cream-100: #fff3ea;
   --color-cream-200: #ffe6d4;
 
+  /* Feaster brand: bold yellow + ink black */
+  --color-feaster-yellow: #FFD60A;
+  --color-feaster-yellow-soft: #FFE65A;
+  --color-feaster-yellow-deep: #E6BF00;
+  --color-feaster-black: #0A0A0A;
+  --color-feaster-jet: #1A1A1A;
+
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-logo: "Pacifico", "Plus Jakarta Sans", cursive;
 
   /* Soft shell shadow */
   --shadow-shell: 0 24px 60px -20px rgba(31, 27, 89, 0.18), 0 8px 24px -12px rgba(31, 27, 89, 0.08);

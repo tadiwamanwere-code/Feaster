@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Phone, Lock, ArrowLeft, Loader } from 'lucide-react'
+import { ArrowLeft, Loader, CheckCircle2 } from 'lucide-react'
 import {
   sendPhoneOtp,
   verifyPhoneOtp,
@@ -12,6 +12,109 @@ import {
 import { useCustomerAuth } from '../../context/CustomerAuthContext'
 
 const STEPS = { PHONE: 0, OTP: 1, PIN_SETUP: 2, PIN_LOGIN: 3 }
+const OTP_LEN = 6
+
+function ProgressDots({ step, total = 3 }) {
+  return (
+    <div className="flex items-center gap-2">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-1.5 rounded-full transition-all duration-300 ${
+            i === step ? 'w-8 bg-feaster-black'
+            : i < step ? 'w-3 bg-feaster-black/70'
+            : 'w-3 bg-feaster-black/25'
+          }`}
+        />
+      ))}
+    </div>
+  )
+}
+
+function PrimaryButton({ children, loading, disabled, onClick, type = 'button' }) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled || loading}
+      className="group relative w-full h-14 rounded-full bg-white border-[3px] border-feaster-black text-feaster-black font-extrabold tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 transition-transform active:scale-[0.97] hover:-translate-y-0.5"
+      style={{ boxShadow: '5px 5px 0 0 #0A0A0A' }}
+    >
+      {loading ? <Loader className="w-5 h-5 animate-spin" /> : children}
+    </button>
+  )
+}
+
+function OtpBoxes({ value, onChange, length = OTP_LEN, autoFocus }) {
+  const refs = useRef([])
+
+  const setDigit = (i, d) => {
+    const arr = value.padEnd(length, ' ').split('')
+    arr[i] = d
+    const next = arr.join('').slice(0, length).replace(/\s/g, '')
+    onChange(next)
+  }
+
+  const handleKey = (i, e) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault()
+      const arr = value.split('')
+      if (arr[i]) {
+        arr[i] = ''
+        onChange(arr.join(''))
+      } else if (i > 0) {
+        refs.current[i - 1]?.focus()
+        const prev = arr.slice(0, i - 1).join('')
+        onChange(prev)
+      }
+    }
+    if (e.key === 'ArrowLeft' && i > 0) refs.current[i - 1]?.focus()
+    if (e.key === 'ArrowRight' && i < length - 1) refs.current[i + 1]?.focus()
+  }
+
+  const handleInput = (i, e) => {
+    const d = e.target.value.replace(/\D/g, '').slice(-1)
+    if (!d) return
+    setDigit(i, d)
+    if (i < length - 1) refs.current[i + 1]?.focus()
+  }
+
+  const handlePaste = (e) => {
+    const text = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, length)
+    if (text) {
+      e.preventDefault()
+      onChange(text)
+      const idx = Math.min(text.length, length - 1)
+      refs.current[idx]?.focus()
+    }
+  }
+
+  return (
+    <div className="flex gap-2.5 justify-center" onPaste={handlePaste}>
+      {Array.from({ length }).map((_, i) => {
+        const filled = !!value[i]
+        return (
+          <input
+            key={i}
+            ref={el => (refs.current[i] = el)}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={1}
+            value={value[i] || ''}
+            onChange={(e) => handleInput(i, e)}
+            onKeyDown={(e) => handleKey(i, e)}
+            autoFocus={autoFocus && i === 0}
+            className={`w-12 h-14 text-center text-2xl font-extrabold rounded-2xl border-2 outline-none transition-all ${
+              filled
+                ? 'bg-feaster-black text-white border-feaster-black shadow-[3px_3px_0_0_#0A0A0A]'
+                : 'bg-white text-feaster-black border-feaster-black/20 focus:border-feaster-black focus:shadow-[3px_3px_0_0_#0A0A0A]'
+            }`}
+          />
+        )
+      })}
+    </div>
+  )
+}
 
 export default function CustomerAuth() {
   const navigate = useNavigate()
@@ -27,6 +130,26 @@ export default function CustomerAuth() {
   const [pinConfirm, setPinConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [resendIn, setResendIn] = useState(0)
+
+  // Resend countdown
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const t = setTimeout(() => setResendIn(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendIn])
+
+  const stepIndex = step === STEPS.PHONE ? 0
+                  : step === STEPS.OTP ? 1
+                  : 2
+
+  const goBack = () => {
+    setError('')
+    if (step === STEPS.PHONE) navigate('/welcome')
+    else if (step === STEPS.OTP) setStep(STEPS.PHONE)
+    else if (step === STEPS.PIN_SETUP) setStep(STEPS.OTP)
+    else navigate('/welcome')
+  }
 
   const submitPhone = async (e) => {
     e.preventDefault()
@@ -35,18 +158,31 @@ export default function CustomerAuth() {
       const normalized = await sendPhoneOtp(phone)
       setNormalizedPhone(normalized)
       setStep(STEPS.OTP)
+      setResendIn(60)
     } catch (err) {
       setError(err.message || 'Failed to send OTP')
     }
     setLoading(false)
   }
 
+  const handleResend = async () => {
+    if (resendIn > 0) return
+    setError(''); setLoading(true)
+    try {
+      const normalized = await sendPhoneOtp(phone)
+      setNormalizedPhone(normalized)
+      setResendIn(60)
+    } catch (err) {
+      setError(err.message || 'Failed to resend')
+    }
+    setLoading(false)
+  }
+
   const submitOtp = async (e) => {
-    e.preventDefault()
+    e?.preventDefault()
     setError(''); setLoading(true)
     try {
       await verifyPhoneOtp(normalizedPhone, otp)
-      // Check if user already has a PIN set
       const exists = await hasPin()
       if (exists) {
         navigate(redirectTo, { replace: true })
@@ -59,6 +195,14 @@ export default function CustomerAuth() {
     }
     setLoading(false)
   }
+
+  // Auto-submit OTP when 6 digits entered
+  useEffect(() => {
+    if (step === STEPS.OTP && otp.length === OTP_LEN && !loading) {
+      submitOtp()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otp])
 
   const submitPinSetup = async (e) => {
     e.preventDefault()
@@ -98,160 +242,197 @@ export default function CustomerAuth() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        {step !== STEPS.PHONE && step !== STEPS.PIN_LOGIN && (
-          <button
-            onClick={() => setStep(s => Math.max(STEPS.PHONE, s - 1))}
-            className="mb-4 text-sm text-gray-500 flex items-center gap-1 hover:text-gray-800"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-        )}
+    <div className="relative min-h-[100dvh] bg-feaster-yellow overflow-hidden">
+      {/* Black accent shapes */}
+      <div className="absolute -top-32 -right-24 w-72 h-72 bg-feaster-black rounded-full opacity-95" />
+      <div className="absolute -bottom-40 -left-24 w-80 h-80 bg-feaster-black rounded-full opacity-95" />
 
+      <div className="relative z-10 min-h-[100dvh] flex flex-col px-6 pt-12 pb-8">
+        {/* Top bar: back + progress */}
+        <div className="flex items-center justify-between mb-10">
+          <button
+            onClick={goBack}
+            aria-label="Back"
+            className="w-11 h-11 rounded-full bg-white border-2 border-feaster-black flex items-center justify-center active:scale-95 transition-transform"
+            style={{ boxShadow: '3px 3px 0 0 #0A0A0A' }}
+          >
+            <ArrowLeft className="w-5 h-5 text-feaster-black" />
+          </button>
+          {step !== STEPS.PIN_LOGIN && <ProgressDots step={stepIndex} total={3} />}
+          <div className="w-11" />
+        </div>
+
+        {/* PHONE STEP */}
         {step === STEPS.PHONE && (
-          <form onSubmit={submitPhone} className="space-y-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Welcome to Feaster</h1>
-              <p className="text-sm text-gray-500 mt-1">Sign in with your phone number</p>
+          <form onSubmit={submitPhone} className="flex-1 flex flex-col">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-black text-feaster-black tracking-tight">Enter your phone number.</h1>
+              <p className="text-sm text-feaster-black/70 max-w-xs">
+                We'll send a verification code to confirm it's you.
+              </p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Phone number</label>
+
+            <div className="mt-8">
+              <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">
+                Phone number
+              </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhoneInput(e.target.value)}
                   placeholder="+263 77 123 4567"
-                  className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-base font-bold text-feaster-black placeholder-feaster-black/30 focus:outline-none transition-shadow focus:shadow-[4px_4px_0_0_#0A0A0A]"
                   required
+                  autoFocus
                 />
               </div>
               {phone && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Will send to: {normalizePhone(phone) || 'Invalid format'}
+                <p className="text-xs text-feaster-black/60 mt-2 font-medium">
+                  Sending to: <span className="font-bold">{normalizePhone(phone) || 'Invalid format'}</span>
                 </p>
               )}
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Send OTP'}
-            </button>
+
+            {error && <p className="text-sm font-bold text-red-700 bg-white/60 rounded-lg px-3 py-2 mt-4">{error}</p>}
+
+            <div className="flex-1" />
+
+            <PrimaryButton type="submit" loading={loading} disabled={!phone}>
+              SEND CODE
+            </PrimaryButton>
           </form>
         )}
 
+        {/* OTP STEP */}
         {step === STEPS.OTP && (
-          <form onSubmit={submitOtp} className="space-y-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Enter the code</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                We sent a code to {normalizedPhone}
+          <form onSubmit={submitOtp} className="flex-1 flex flex-col">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-black text-feaster-black tracking-tight">
+                Enter OTP <br/>verification code.
+              </h1>
+              <p className="text-sm text-feaster-black/70">
+                Verification code has been sent to{' '}
+                <span className="font-bold text-feaster-black">{normalizedPhone}</span>
               </p>
             </div>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              placeholder="123456"
-              className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
-              required
-            />
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6}
-              className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Verify'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep(STEPS.PHONE)}
-              className="w-full text-xs text-gray-500 hover:text-gray-800"
-            >
-              Wrong number? Change it
-            </button>
+
+            <div className="mt-10">
+              <OtpBoxes value={otp} onChange={setOtp} autoFocus />
+            </div>
+
+            <div className="mt-6 text-center">
+              {resendIn > 0 ? (
+                <p className="text-sm text-feaster-black/70 font-medium">
+                  Didn't receive the code? <span className="font-bold">Resend ({resendIn}s)</span>
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  className="text-sm font-bold text-feaster-black underline underline-offset-4"
+                >
+                  Didn't receive the code? Resend
+                </button>
+              )}
+            </div>
+
+            {error && <p className="text-sm font-bold text-red-700 bg-white/60 rounded-lg px-3 py-2 mt-4 text-center">{error}</p>}
+
+            <div className="flex-1" />
+
+            <PrimaryButton type="submit" loading={loading} disabled={otp.length !== OTP_LEN}>
+              VERIFY
+            </PrimaryButton>
           </form>
         )}
 
+        {/* PIN SETUP */}
         {step === STEPS.PIN_SETUP && (
-          <form onSubmit={submitPinSetup} className="space-y-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Set a 6-digit PIN</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                You'll use this PIN to confirm orders and payments
+          <form onSubmit={submitPinSetup} className="flex-1 flex flex-col">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 text-feaster-black">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-xs font-extrabold tracking-wider uppercase">Verification Success</span>
+              </div>
+              <h1 className="text-3xl font-black text-feaster-black tracking-tight">Create your PIN.</h1>
+              <p className="text-sm text-feaster-black/70 max-w-xs">
+                Choose a 6-digit PIN. You'll use it to confirm orders and payments.
               </p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">PIN</label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={6}
-                value={pin}
-                onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
+
+            <div className="mt-8 space-y-5">
+              <div>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pin}
+                  onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                  required
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-feaster-black/70 mb-2 block">Confirm PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={pinConfirm}
+                  onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full h-14 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-2xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Confirm PIN</label>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={6}
-                value={pinConfirm}
-                onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full px-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || pin.length !== 6 || pinConfirm.length !== 6}
-              className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Set PIN & continue'}
-            </button>
+
+            {error && <p className="text-sm font-bold text-red-700 bg-white/60 rounded-lg px-3 py-2 mt-4">{error}</p>}
+
+            <div className="flex-1" />
+
+            <PrimaryButton type="submit" loading={loading} disabled={pin.length !== 6 || pinConfirm.length !== 6}>
+              CREATE PIN
+            </PrimaryButton>
           </form>
         )}
 
+        {/* PIN LOGIN (returning users) */}
         {step === STEPS.PIN_LOGIN && (
-          <form onSubmit={submitPinLogin} className="space-y-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Welcome back</h1>
-              <p className="text-sm text-gray-500 mt-1">Enter your PIN</p>
+          <form onSubmit={submitPinLogin} className="flex-1 flex flex-col">
+            <div className="space-y-2">
+              <h1
+                className="text-5xl text-feaster-black"
+                style={{ fontFamily: 'Pacifico, cursive' }}
+              >
+                Welcome back
+              </h1>
+              <p className="text-sm text-feaster-black/70">Enter your 6-digit PIN to continue.</p>
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+            <div className="mt-10">
               <input
                 type="password"
                 inputMode="numeric"
                 maxLength={6}
                 value={pin}
                 onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-lg text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full h-16 px-5 bg-white border-2 border-feaster-black rounded-2xl text-center text-3xl font-extrabold tracking-[0.5em] text-feaster-black focus:outline-none focus:shadow-[4px_4px_0_0_#0A0A0A]"
                 required
                 autoFocus
+                placeholder="••••••"
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || pin.length !== 6}
-              className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Continue'}
-            </button>
+
+            {error && <p className="text-sm font-bold text-red-700 bg-white/60 rounded-lg px-3 py-2 mt-4 text-center">{error}</p>}
+
+            <div className="flex-1" />
+
+            <PrimaryButton type="submit" loading={loading} disabled={pin.length !== 6}>
+              CONTINUE
+            </PrimaryButton>
           </form>
         )}
       </div>

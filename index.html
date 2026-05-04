@@ -14,7 +14,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <title>Feaster — Order Food Faster</title>
 
@@ -25,41 +25,48 @@
         background: #ea580c;
         display: flex; align-items: center; justify-content: center;
         flex-direction: column;
-        animation: splashFade 0.6s ease 0s forwards;
-        opacity: 1;
+        overflow: hidden;
       }
-      #initial-splash .logo {
-        width: 96px; height: 96px;
-        display: flex; align-items: center; justify-content: center;
-        animation: splashPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
+      #initial-splash .blob-tl { position: absolute; top: -120px; left: -80px; width: 280px; height: 280px; background: #0A0A0A; border-radius: 50%; opacity: 0.95; filter: blur(0.5px); }
+      #initial-splash .blob-br { position: absolute; bottom: -140px; right: -100px; width: 320px; height: 320px; background: #0A0A0A; border-radius: 50%; opacity: 0.92; }
+      #initial-splash .pellet  { position: absolute; width: 14px; height: 14px; background: #0A0A0A; border-radius: 50%; }
+      #initial-splash .p1 { top: 18%; right: 14%; animation: splashPellet 2.4s ease infinite; }
+      #initial-splash .p2 { bottom: 22%; left: 18%; width: 10px; height: 10px; animation: splashPellet 2.4s ease 0.4s infinite; }
       #initial-splash .word {
-        margin-top: 14px;
-        font: 800 38px/1 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        color: #fff; letter-spacing: -0.02em;
-        animation: splashRise 0.7s ease 0.15s both;
+        position: relative; z-index: 2;
+        font: 400 84px/1 'Pacifico', cursive;
+        color: #ffffff;
+        letter-spacing: 0.01em;
+        text-shadow: 4px 4px 0 #0A0A0A;
+        animation: splashWord 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both;
       }
-      @keyframes splashPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-      @keyframes splashRise { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-      @keyframes splashFade { 0%, 80% { opacity: 1; } 100% { opacity: 1; } }
-      .splash-hide { animation: splashOut 0.35s ease forwards !important; pointer-events: none; }
+      #initial-splash .tag {
+        position: relative; z-index: 2;
+        margin-top: 18px;
+        padding: 6px 14px;
+        background: #0A0A0A;
+        color: #FFD60A;
+        font: 800 11px/1 'Plus Jakarta Sans', system-ui, sans-serif;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        border-radius: 999px;
+        animation: splashRise 0.7s ease 0.5s both;
+      }
+      @keyframes splashWord { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes splashRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes splashPellet { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.5; } }
+      .splash-hide { animation: splashOut 0.4s ease forwards !important; pointer-events: none; }
       @keyframes splashOut { to { opacity: 0; transform: scale(1.04); } }
     </style>
   </head>
   <body>
     <div id="initial-splash" aria-hidden="true">
-      <div class="logo">
-        <svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M24 14 L24 38 Q24 44 30 44 L30 70" />
-            <path d="M18 14 L18 34" />
-            <path d="M30 14 L30 34" />
-            <path d="M58 14 L58 70" />
-            <path d="M58 14 Q70 22 70 38 Q70 44 58 44" />
-          </g>
-        </svg>
-      </div>
+      <div class="blob-tl"></div>
+      <div class="blob-br"></div>
+      <div class="pellet p1"></div>
+      <div class="pellet p2"></div>
       <div class="word">Feaster</div>
+      <div class="tag">Order Food Faster</div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
