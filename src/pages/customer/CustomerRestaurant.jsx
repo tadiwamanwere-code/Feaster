@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Plus, Minus, ShoppingBag, ChevronRight } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../../lib/services'
 import { useCart } from '../../context/CartContext'
 
@@ -90,34 +90,50 @@ export default function CustomerRestaurant() {
               {items.map(item => {
                 const inCart = cart.items?.find(c => c.item_id === item.id)
                 return (
-                  <li key={item.id} className="bg-white rounded-xl border border-gray-100 p-3 flex gap-3">
-                    {item.image_url && (
-                      <img
-                        src={item.image_url}
-                        alt=""
-                        className="w-20 h-20 rounded-lg object-cover shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
+                  <li key={item.id} className="bg-white rounded-2xl border border-ink-200/30 p-3 flex gap-3 shadow-soft">
+                    <Link
+                      to={`/app/r/${restaurant.slug}/item/${item.id}`}
+                      className="contents"
+                    >
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="w-20 h-20 rounded-xl object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-xl bg-cream-100 flex items-center justify-center text-3xl shrink-0">🍽️</div>
                       )}
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/app/r/${restaurant.slug}/item/${item.id}`} className="block">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-bold text-ink-900 truncate">{item.name}</h3>
+                          <ChevronRight className="w-4 h-4 text-ink-400 shrink-0 mt-0.5" />
+                        </div>
+                        {item.description && (
+                          <p className="text-xs text-ink-500 mt-0.5 line-clamp-2">{item.description}</p>
+                        )}
+                      </Link>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-bold text-orange-600">
                           ${Number(item.price).toFixed(2)}
                         </span>
                         {inCart ? (
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => cart.decrement(item.id)}
-                              className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"
-                            ><Minus className="w-3.5 h-3.5" /></button>
-                            <span className="text-sm w-5 text-center">{inCart.quantity}</span>
+                              aria-label="Decrease"
+                              className="w-9 h-9 bg-cream-100 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                            ><Minus className="w-4 h-4" /></button>
+                            <span className="text-sm font-bold w-5 text-center">{inCart.quantity}</span>
                             <button
                               onClick={() => cart.increment(item.id)}
-                              className="w-7 h-7 bg-orange-600 text-white rounded-full flex items-center justify-center"
-                            ><Plus className="w-3.5 h-3.5" /></button>
+                              aria-label="Increase"
+                              className="w-9 h-9 bg-orange-600 text-white rounded-full flex items-center justify-center shadow-pop active:scale-90 transition-transform"
+                            ><Plus className="w-4 h-4" /></button>
                           </div>
                         ) : (
                           <button
@@ -130,8 +146,8 @@ export default function CustomerRestaurant() {
                                 notes: '',
                               })
                             }
-                            className="px-3 py-1.5 bg-orange-600 text-white rounded-full text-xs font-medium hover:bg-orange-700"
-                          >Add</button>
+                            className="px-4 py-2 bg-orange-600 text-white rounded-full text-xs font-bold shadow-pop active:scale-95 transition-transform"
+                          >Add +</button>
                         )}
                       </div>
                     </div>

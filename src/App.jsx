@@ -39,10 +39,12 @@ const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
 const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
 // Customer PWA
+const WelcomeScreen = lazy(() => import('./pages/customer/WelcomeScreen'))
 const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
 const CustomerLayout = lazy(() => import('./pages/customer/CustomerLayout'))
 const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
 const CustomerRestaurant = lazy(() => import('./pages/customer/CustomerRestaurant'))
+const CustomerItemDetail = lazy(() => import('./pages/customer/CustomerItemDetail'))
 const CustomerCart = lazy(() => import('./pages/customer/CustomerCart'))
 const CustomerCheckout = lazy(() => import('./pages/customer/CustomerCheckout'))
 const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
@@ -97,10 +99,12 @@ export default function App() {
                   </Route>
 
                   {/* Customer PWA */}
+                  <Route path="/welcome" element={<WelcomeScreen />} />
                   <Route path="/app/auth" element={<CustomerAuth />} />
                   <Route path="/app" element={<CustomerLayout />}>
                     <Route index element={<CustomerHome />} />
                     <Route path="r/:slug" element={<CustomerRestaurant />} />
+                    <Route path="r/:slug/item/:itemId" element={<CustomerItemDetail />} />
                     <Route path="cart" element={<CustomerCart />} />
                     <Route path="checkout" element={<CustomerCheckout />} />
                     <Route path="orders" element={<CustomerOrders />} />

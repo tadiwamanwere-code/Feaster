@@ -62,10 +62,10 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 mt-8">
             <Link
-              to="/explore"
+              to="/welcome"
               className="group flex items-center justify-center gap-2.5 bg-white hover:bg-orange-50 text-ink-900 px-7 py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98] shadow-pop"
             >
-              Browse Restaurants
+              Order Food Now
               <ArrowRight className="w-4.5 h-4.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
             <Link

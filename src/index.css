@@ -26,7 +26,12 @@
   --color-ink-400: #a0a0b8;
   --color-ink-200: #e6e6f0;
 
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* Warm cream background (Eatsy-inspired) */
+  --color-cream-50: #fffaf6;
+  --color-cream-100: #fff3ea;
+  --color-cream-200: #ffe6d4;
+
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
 
   /* Soft shell shadow */
   --shadow-shell: 0 24px 60px -20px rgba(31, 27, 89, 0.18), 0 8px 24px -12px rgba(31, 27, 89, 0.08);

@@ -106,6 +106,39 @@ export async function deleteMenuItem(id) {
   invalidateCache('menu')
 }
 
+export async function getPopularMenuItems({ limit = 24 } = {}) {
+  const cacheKey = `popular:${limit}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
+  const { data, error } = await supabase
+    .from('menu_items')
+    .select('id, name, description, price, image_url, category, restaurant_id, restaurants!inner(id, name, slug, logo_url, cuisine_type, city, rating, is_active)')
+    .eq('is_available', true)
+    .eq('restaurants.is_active', true)
+    .not('image_url', 'is', null)
+    .order('sort_order', { ascending: true })
+    .limit(limit)
+  if (error) throw error
+  cacheSet(cacheKey, data || [])
+  return data || []
+}
+
+export async function getMenuItemById(itemId) {
+  const cacheKey = `item:${itemId}`
+  const cached = cacheGet(cacheKey)
+  if (cached) return cached
+
+  const { data, error } = await supabase
+    .from('menu_items')
+    .select('*, restaurants!inner(id, name, slug, logo_url, cuisine_type, city, rating)')
+    .eq('id', itemId)
+    .single()
+  if (error && error.code !== 'PGRST116') throw error
+  if (data) cacheSet(cacheKey, data)
+  return data || null
+}
+
 // ─── Tables ────────────────────────────────────────────────────
 
 export async function getTables(restaurantId) {
