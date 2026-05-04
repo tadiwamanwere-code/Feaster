@@ -1,11 +1,10 @@
-const CACHE_NAME = 'feaster-v2'
+const CACHE_NAME = 'feaster-v3-eatsy'
 const STATIC_ASSETS = [
   '/',
   '/favicon.svg',
   '/icon-192.svg',
   '/icon-512.svg',
   '/manifest.json',
-  '/hero-bg.jpg',
 ]
 
 // Install — cache core shell
@@ -31,11 +30,16 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  // Skip non-GET and Firebase/API requests
+  // Skip non-GET requests
   if (request.method !== 'GET') return
-  if (url.hostname.includes('firestore.googleapis.com')) return
-  if (url.hostname.includes('identitytoolkit.googleapis.com')) return
-  if (url.hostname.includes('firebasestorage.googleapis.com')) return
+
+  // NEVER cache Supabase, Mapbox, or any API calls — these are dynamic data
+  if (url.hostname.includes('supabase.co')) return
+  if (url.hostname.includes('supabase.in')) return
+  if (url.hostname.includes('mapbox.com')) return
+  if (url.hostname.includes('googleapis.com')) return
+  if (url.hostname.includes('openrouteservice.org')) return
+  if (url.pathname.startsWith('/api/')) return
 
   // JS/CSS bundles — cache first (they have hashed filenames)
   if (url.pathname.startsWith('/assets/')) {
