@@ -57,17 +57,21 @@ export async function verifyPhoneOtp(phone, code) {
   return data
 }
 
+// pin_hash + pin_set_at are revoked from authenticated — must enumerate cols.
+const CUSTOMER_COLS =
+  'id, auth_user_id, phone, full_name, email, default_address_id, is_active, is_verified, created_at, updated_at'
+
 async function ensureCustomerProfile(authUserId, phone) {
   const { data: existing } = await supabase
     .from('customers')
-    .select('*')
+    .select(CUSTOMER_COLS)
     .eq('auth_user_id', authUserId)
     .maybeSingle()
   if (existing) return existing
   const { data: created, error } = await supabase
     .from('customers')
     .insert({ auth_user_id: authUserId, phone, is_verified: true })
-    .select()
+    .select(CUSTOMER_COLS)
     .single()
   if (error) throw error
   return created
@@ -78,7 +82,7 @@ export async function getMyCustomerProfile() {
   if (!user) return null
   const { data, error } = await supabase
     .from('customers')
-    .select('*')
+    .select(CUSTOMER_COLS)
     .eq('auth_user_id', user.id)
     .maybeSingle()
   if (error) throw error

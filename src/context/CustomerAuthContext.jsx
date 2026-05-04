@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 /* eslint-disable react-refresh/only-export-components */
-import { getMyCustomerProfile } from '../lib/customers'
+import { getMyCustomerProfile, hasPin } from '../lib/customers'
 
 const CustomerAuthContext = createContext()
 
@@ -13,9 +13,9 @@ export function CustomerAuthProvider({ children }) {
 
   const refreshProfile = useCallback(async () => {
     try {
-      const p = await getMyCustomerProfile()
+      const [p, hp] = await Promise.all([getMyCustomerProfile(), hasPin()])
       setProfile(p)
-      setPinSet(!!p?.pin_hash)
+      setPinSet(hp)
     } catch {
       setProfile(null)
       setPinSet(false)
