@@ -38,18 +38,9 @@ const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
 const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
 const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
-// Customer PWA
+// Customer PWA — being rebuilt screen by screen
 const WelcomeScreen = lazy(() => import('./pages/customer/WelcomeScreen'))
 const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
-const CustomerLayout = lazy(() => import('./pages/customer/CustomerLayout'))
-const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
-const CustomerRestaurant = lazy(() => import('./pages/customer/CustomerRestaurant'))
-const CustomerItemDetail = lazy(() => import('./pages/customer/CustomerItemDetail'))
-const CustomerCart = lazy(() => import('./pages/customer/CustomerCart'))
-const CustomerCheckout = lazy(() => import('./pages/customer/CustomerCheckout'))
-const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
-const CustomerTrackOrder = lazy(() => import('./pages/customer/CustomerTrackOrder'))
-const CustomerProfile = lazy(() => import('./pages/customer/CustomerProfile'))
 
 // Driver PWA
 const DriverAuth = lazy(() => import('./pages/driver/DriverAuth'))
@@ -98,19 +89,9 @@ export default function App() {
                     <Route path="edit/:id" element={<RestaurantForm />} />
                   </Route>
 
-                  {/* Customer PWA */}
+                  {/* Customer PWA — Welcome + Auth only (rest being rebuilt) */}
                   <Route path="/welcome" element={<WelcomeScreen />} />
                   <Route path="/app/auth" element={<CustomerAuth />} />
-                  <Route path="/app" element={<CustomerLayout />}>
-                    <Route index element={<CustomerHome />} />
-                    <Route path="r/:slug" element={<CustomerRestaurant />} />
-                    <Route path="r/:slug/item/:itemId" element={<CustomerItemDetail />} />
-                    <Route path="cart" element={<CustomerCart />} />
-                    <Route path="checkout" element={<CustomerCheckout />} />
-                    <Route path="orders" element={<CustomerOrders />} />
-                    <Route path="track/:orderId" element={<CustomerTrackOrder />} />
-                    <Route path="profile" element={<CustomerProfile />} />
-                  </Route>
 
                   {/* Driver PWA */}
                   <Route path="/driver/auth" element={<DriverAuth />} />

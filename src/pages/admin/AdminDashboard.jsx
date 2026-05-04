@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const { slug } = useParams()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -25,13 +26,7 @@ export default function AdminDashboard() {
           const [allOrders] = await Promise.all([getOrdersByRestaurant(rest.id)])
           setOrders(allOrders)
         } else {
-          setOrders([
-            { id: '1', total: 23.00, status: 'completed', order_type: 'dine_in', customer_name: 'Tatenda M.', created_at: new Date().toISOString() },
-            { id: '2', total: 19.50, status: 'preparing', order_type: 'takeout', customer_name: 'Sarah K.', created_at: new Date().toISOString() },
-            { id: '3', total: 45.00, status: 'completed', order_type: 'dine_in', customer_name: 'James N.', created_at: new Date(Date.now() - 86400000).toISOString() },
-            { id: '4', total: 32.00, status: 'completed', order_type: 'pre_order', customer_name: 'Linda C.', created_at: new Date(Date.now() - 86400000).toISOString() },
-            { id: '5', total: 15.00, status: 'pending', order_type: 'dine_in', customer_name: 'Mike T.', created_at: new Date().toISOString() },
-          ])
+          setNotFound(true)
         }
       } catch {
         setOrders([])
@@ -61,6 +56,23 @@ export default function AdminDashboard() {
     { to: `/admin/${slug}/tables`, label: 'QR Codes', desc: 'Tables & QR setup', icon: QrCode, color: 'text-blue-400' },
     { to: `/kitchen/${slug}`, label: 'Kitchen Display', desc: 'Live order view', icon: ChefHat, color: 'text-purple-400' },
   ]
+
+  if (notFound) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center max-w-md p-8">
+          <div className="text-6xl mb-4">🤔</div>
+          <h2 className="text-xl font-semibold text-white mb-2">Restaurant not found</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            We couldn't find a restaurant at <span className="font-mono text-orange-400">/{slug}</span>.
+          </p>
+          <Link to="/platform" className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium">
+            Go to Platform
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

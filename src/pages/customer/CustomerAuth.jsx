@@ -119,7 +119,7 @@ export default function CustomerAuth() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, refreshProfile } = useCustomerAuth()
-  const redirectTo = location.state?.from || '/app'
+  const redirectTo = location.state?.from || '/welcome'
 
   const [step, setStep] = useState(user ? STEPS.PIN_LOGIN : STEPS.PHONE)
   const [phone, setPhoneInput] = useState('')

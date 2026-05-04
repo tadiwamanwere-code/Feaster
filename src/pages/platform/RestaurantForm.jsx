@@ -6,6 +6,10 @@ import { getRestaurantById, addRestaurant, updateRestaurant, setupTables, upload
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 const DAY_LABELS = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' }
 
+function randomPin() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 const EMPTY_FORM = {
   name: '',
   slug: '',
@@ -18,7 +22,7 @@ const EMPTY_FORM = {
   opening_hours: { mon: '11:00-22:00', tue: '11:00-22:00', wed: '11:00-22:00', thu: '11:00-22:00', fri: '11:00-23:00', sat: '11:00-23:00', sun: '12:00-21:00' },
   payment_methods: ['cash', 'ecocash'],
   subscription_tier: 'pro',
-  kitchen_pin: '',
+  kitchen_pin: randomPin(),
   rating: null,
   table_count: 0,
 }
@@ -55,7 +59,7 @@ export default function RestaurantForm() {
           opening_hours: rest.opening_hours || EMPTY_FORM.opening_hours,
           payment_methods: rest.payment_methods || ['cash'],
           subscription_tier: rest.subscription_tier || 'pro',
-          kitchen_pin: rest.kitchen_pin || '1234',
+          kitchen_pin: rest.kitchen_pin || randomPin(),
           rating: rest.rating || null,
           table_count: rest.table_count || 0,
         })
