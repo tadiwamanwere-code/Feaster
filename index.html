@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="Feaster - Order food faster. Scan, order, eat. Fast food ordering for Africa." />
     <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -19,32 +19,19 @@
     <title>Feaster — Order Food Faster</title>
 
     <style>
-      html, body { margin: 0; padding: 0; background: #000000; }
+      html, body { margin: 0; padding: 0; background: #ffffff; }
       #initial-splash {
         position: fixed; inset: 0; z-index: 9999;
-        background: #000000;
+        background: #ffffff;
         display: flex; align-items: center; justify-content: center;
-        flex-direction: column;
       }
       #initial-splash .word {
         font: 400 84px/1 'Pacifico', cursive;
-        color: #ffffff;
+        color: #000000;
         letter-spacing: 0.01em;
         animation: splashWord 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s both;
       }
-      #initial-splash .tag {
-        margin-top: 18px;
-        padding: 6px 14px;
-        background: #ffffff;
-        color: #000000;
-        font: 800 11px/1 'Plus Jakarta Sans', system-ui, sans-serif;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-        border-radius: 999px;
-        animation: splashRise 0.7s ease 0.5s both;
-      }
       @keyframes splashWord { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
-      @keyframes splashRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       .splash-hide { animation: splashOut 0.4s ease forwards !important; pointer-events: none; }
       @keyframes splashOut { to { opacity: 0; transform: scale(1.04); } }
     </style>
@@ -52,7 +39,6 @@
   <body>
     <div id="initial-splash" aria-hidden="true">
       <div class="word">Feaster</div>
-      <div class="tag">Order Food Faster</div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

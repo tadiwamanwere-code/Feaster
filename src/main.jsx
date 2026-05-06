@@ -12,16 +12,18 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>
 )
 
-// Hide the inline splash once React has painted at least one frame
+// Splash holds for exactly 4 seconds total before fading out
+const splashStartedAt = window.__splashStart || (window.__splashStart = performance.now())
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     const splash = document.getElementById('initial-splash')
     if (!splash) return
-    // Keep the splash visible briefly so it actually feels like a splash
+    const elapsed = performance.now() - splashStartedAt
+    const remaining = Math.max(0, 4000 - elapsed)
     setTimeout(() => {
       splash.classList.add('splash-hide')
       splash.addEventListener('animationend', () => splash.remove(), { once: true })
-    }, 450)
+    }, remaining)
   })
 })
 
