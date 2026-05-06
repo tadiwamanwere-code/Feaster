@@ -1,15 +1,31 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Star, MapPin, Clock } from 'lucide-react'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Star, MapPin, Clock, Utensils, ShoppingBag, X } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../../lib/services'
+import { useCart } from '../../context/CartContext'
+
+const ORDER_LABEL = {
+  in_house: 'Dine In',
+  takeaway: 'Take Away',
+  pre_order: 'Pre-Order',
+}
 
 export default function CustomerRestaurant() {
   const { slug } = useParams()
+  const [params] = useSearchParams()
   const navigate = useNavigate()
+  const cart = useCart()
   const [restaurant, setRestaurant] = useState(null)
   const [menu, setMenu] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeCat, setActiveCat] = useState(null)
+
+  // Sync table number from query string into cart (for QR-arrived users)
+  useEffect(() => {
+    const t = params.get('table')
+    if (t && cart.tableNumber !== t) cart.setTable?.(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params])
 
   useEffect(() => {
     let cancelled = false
@@ -19,6 +35,7 @@ export default function CustomerRestaurant() {
         if (cancelled) return
         if (!r) return navigate('/app', { replace: true })
         setRestaurant(r)
+        if (cart.restaurantSlug !== r.slug) cart.setRestaurant?.(r.slug, r.id)
         const items = await getMenuItems(r.id)
         if (!cancelled) setMenu(items.filter(i => i.is_available))
       } finally {
@@ -27,6 +44,7 @@ export default function CustomerRestaurant() {
     }
     load()
     return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, navigate])
 
   const sections = useMemo(() => {
@@ -53,15 +71,11 @@ export default function CustomerRestaurant() {
   if (!restaurant) return null
 
   return (
-    <div className="bg-white min-h-[100dvh]">
+    <div className="bg-white min-h-[100dvh] pb-32">
       {/* Cover */}
       <div className="relative h-56 bg-[#F4F4F4]">
         {restaurant.cover_photo_url ? (
-          <img
-            src={restaurant.cover_photo_url}
-            alt={restaurant.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={restaurant.cover_photo_url} alt={restaurant.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-6xl">🍽️</div>
         )}
@@ -76,10 +90,34 @@ export default function CustomerRestaurant() {
         </button>
       </div>
 
+      {/* Order context banner */}
+      {(cart.orderType || cart.tableNumber) && (
+        <div className="mx-5 -mt-3 relative z-10 bg-black text-white rounded-2xl px-4 py-3 flex items-center gap-3">
+          <Utensils className="w-5 h-5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/60">
+              {ORDER_LABEL[cart.orderType] || 'Order'}
+            </p>
+            <p className="text-sm font-bold truncate">
+              {cart.tableNumber
+                ? `Table ${cart.tableNumber}`
+                : cart.orderType === 'pre_order'
+                  ? 'Pickup time set at checkout'
+                  : 'No table'}
+            </p>
+          </div>
+          <Link
+            to="/app/order-type"
+            className="shrink-0 text-[10px] font-extrabold uppercase tracking-wider text-white/70 hover:text-white"
+          >
+            Change
+          </Link>
+        </div>
+      )}
+
       {/* Restaurant info card */}
-      <div className="relative -mt-12 mx-5 bg-white rounded-3xl border border-black/10 p-5 shadow-sm">
+      <div className="relative mt-3 mx-5 bg-white rounded-3xl border border-black/10 p-5">
         <div className="flex items-start gap-4">
-          {/* Circular logo */}
           <div className="w-16 h-16 rounded-full overflow-hidden bg-[#F4F4F4] shrink-0 border-2 border-white shadow-md">
             {restaurant.logo_url ? (
               <img src={restaurant.logo_url} alt="" className="w-full h-full object-cover" />
@@ -87,15 +125,9 @@ export default function CustomerRestaurant() {
               <div className="w-full h-full flex items-center justify-center text-2xl">🍽️</div>
             )}
           </div>
-
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-extrabold text-black tracking-tight truncate">
-              {restaurant.name}
-            </h1>
-            <p className="text-xs text-black/55 font-semibold mt-0.5 truncate">
-              {restaurant.cuisine_type}
-            </p>
-
+            <h1 className="text-xl font-extrabold text-black tracking-tight truncate">{restaurant.name}</h1>
+            <p className="text-xs text-black/55 font-semibold mt-0.5 truncate">{restaurant.cuisine_type}</p>
             <div className="flex items-center gap-3 mt-2 text-[11px] font-bold">
               {restaurant.rating && (
                 <span className="inline-flex items-center gap-0.5 text-black">
@@ -114,17 +146,14 @@ export default function CustomerRestaurant() {
             </div>
           </div>
         </div>
-
         {restaurant.description && (
-          <p className="text-sm text-black/70 mt-3 leading-relaxed">
-            {restaurant.description}
-          </p>
+          <p className="text-sm text-black/70 mt-3 leading-relaxed">{restaurant.description}</p>
         )}
       </div>
 
       {/* Sticky category chips */}
       {sections.length > 1 && (
-        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur pt-4 pb-2 border-b border-black/5">
+        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur pt-4 pb-2 mt-3">
           <div className="flex gap-2 overflow-x-auto no-scrollbar px-5">
             {sections.map(([cat]) => {
               const active = activeCat === cat
@@ -136,9 +165,7 @@ export default function CustomerRestaurant() {
                     document.getElementById(`cat-${cat}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   }}
                   className={`shrink-0 px-4 h-10 rounded-full text-sm font-bold transition-all ${
-                    active
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black/70 border border-black/15'
+                    active ? 'bg-black text-white' : 'bg-white text-black/70 border border-black/15'
                   }`}
                 >
                   {cat}
@@ -150,7 +177,7 @@ export default function CustomerRestaurant() {
       )}
 
       {/* Menu */}
-      <div className="px-5 pt-4 pb-32 space-y-7">
+      <div className="px-5 pt-4 space-y-7">
         {sections.length === 0 && (
           <div className="bg-white rounded-3xl p-8 text-center border border-black/10">
             <div className="text-4xl mb-2">📋</div>
@@ -200,6 +227,22 @@ export default function CustomerRestaurant() {
           </section>
         ))}
       </div>
+
+      {/* Cart FAB */}
+      {cart.itemCount > 0 && (
+        <div className="fixed bottom-0 inset-x-0 z-30 px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-2 pointer-events-none">
+          <button
+            onClick={() => navigate('/app/cart')}
+            className="max-w-md mx-auto w-full h-14 rounded-full bg-black text-white font-extrabold flex items-center justify-between gap-3 px-5 active:scale-[0.98] transition-transform shadow-2xl pointer-events-auto"
+          >
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-black text-xs font-extrabold">
+              {cart.itemCount}
+            </span>
+            <span className="flex-1 text-left">View cart</span>
+            <span>${cart.total.toFixed(2)}</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }

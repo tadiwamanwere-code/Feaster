@@ -39,12 +39,15 @@ const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
 // Customer PWA
 const WelcomeScreen = lazy(() => import('./pages/customer/WelcomeScreen'))
-const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
-const CustomerOnboarding = lazy(() => import('./pages/customer/CustomerOnboarding'))
+const CustomerOrderType = lazy(() => import('./pages/customer/CustomerOrderType'))
+const CustomerScan = lazy(() => import('./pages/customer/CustomerScan'))
 const CustomerLayout = lazy(() => import('./pages/customer/CustomerLayout'))
 const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
 const CustomerRestaurant = lazy(() => import('./pages/customer/CustomerRestaurant'))
 const CustomerDish = lazy(() => import('./pages/customer/CustomerDish'))
+const CustomerCart = lazy(() => import('./pages/customer/CustomerCart'))
+const CustomerCheckout = lazy(() => import('./pages/customer/CustomerCheckout'))
+const CustomerOrderSuccess = lazy(() => import('./pages/customer/CustomerOrderSuccess'))
 const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
 const CustomerProfile = lazy(() => import('./pages/customer/CustomerProfile'))
 
@@ -97,8 +100,15 @@ export default function App() {
 
                   {/* Customer PWA */}
                   <Route path="/welcome" element={<WelcomeScreen />} />
-                  <Route path="/onboarding" element={<CustomerOnboarding />} />
-                  <Route path="/app/auth" element={<CustomerAuth />} />
+
+                  {/* Full-screen flow steps (no bottom nav) */}
+                  <Route path="/app/order-type" element={<CustomerOrderType />} />
+                  <Route path="/app/scan" element={<CustomerScan />} />
+                  <Route path="/app/cart" element={<CustomerCart />} />
+                  <Route path="/app/checkout" element={<CustomerCheckout />} />
+                  <Route path="/app/order/:id" element={<CustomerOrderSuccess />} />
+
+                  {/* Bottom-nav routes */}
                   <Route path="/app" element={<CustomerLayout />}>
                     <Route index element={<CustomerHome />} />
                     <Route path="orders" element={<CustomerOrders />} />

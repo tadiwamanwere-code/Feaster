@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { Home, ClipboardList, User } from 'lucide-react'
 
 const TABS = [
@@ -9,14 +8,7 @@ const TABS = [
 ]
 
 export default function CustomerLayout() {
-  const navigate = useNavigate()
   const location = useLocation()
-
-  // Onboarding gate
-  useEffect(() => {
-    const onboarded = localStorage.getItem('feaster:onboarded') === 'true'
-    if (!onboarded) navigate('/onboarding', { replace: true })
-  }, [navigate])
 
   // Active tab index for the sliding pill indicator
   const activeIndex = TABS.findIndex(t =>

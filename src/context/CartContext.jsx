@@ -1,55 +1,81 @@
-import { createContext, useContext, useReducer, useMemo } from 'react'
+import { createContext, useContext, useEffect, useReducer, useMemo } from 'react'
 
 const CartContext = createContext()
+const STORAGE_KEY = 'feaster:cart'
 
 function cartReducer(state, action) {
   switch (action.type) {
+    case 'HYDRATE':
+      return { ...state, ...action.state }
+
     case 'ADD_ITEM': {
-      const itemId = action.item.id || action.item.item_id
-      const existing = state.items.find(i => (i.id || i.item_id) === itemId)
+      const incoming = action.item
+      const matchKey = (i) =>
+        (i.id || i.item_id) === (incoming.id || incoming.item_id) &&
+        (i.size || 'regular') === (incoming.size || 'regular') &&
+        (i.notes || '') === (incoming.notes || '')
+
+      const existing = state.items.find(matchKey)
       if (existing) {
         return {
           ...state,
-          items: state.items.map(i =>
-            (i.id || i.item_id) === itemId ? { ...i, quantity: i.quantity + (action.item.quantity || 1) } : i
+          items: state.items.map(i => matchKey(i)
+            ? { ...i, quantity: i.quantity + (incoming.quantity || 1) }
+            : i
           ),
         }
       }
+      const itemId = incoming.id || incoming.item_id
       return {
         ...state,
         items: [
           ...state.items,
-          { id: itemId, item_id: itemId, ...action.item, quantity: action.item.quantity || 1, notes: action.item.notes || '' },
+          {
+            id: itemId,
+            item_id: itemId,
+            name: incoming.name,
+            price: incoming.price,         // effective unit price (after size mult)
+            base_price: incoming.base_price ?? incoming.price,
+            size: incoming.size || 'regular',
+            quantity: incoming.quantity || 1,
+            notes: incoming.notes || '',
+            image_url: incoming.image_url || null,
+          },
         ],
       }
     }
+
     case 'REMOVE_ITEM':
-      return { ...state, items: state.items.filter(i => (i.id || i.item_id) !== action.id) }
+      return { ...state, items: state.items.filter((_, i) => i !== action.index) }
+
     case 'UPDATE_QUANTITY':
       if (action.quantity <= 0) {
-        return { ...state, items: state.items.filter(i => (i.id || i.item_id) !== action.id) }
+        return { ...state, items: state.items.filter((_, i) => i !== action.index) }
       }
       return {
         ...state,
-        items: state.items.map(i =>
-          (i.id || i.item_id) === action.id ? { ...i, quantity: action.quantity } : i
-        ),
+        items: state.items.map((i, idx) => idx === action.index ? { ...i, quantity: action.quantity } : i),
       }
+
     case 'UPDATE_NOTES':
       return {
         ...state,
-        items: state.items.map(i =>
-          (i.id || i.item_id) === action.id ? { ...i, notes: action.notes } : i
-        ),
+        items: state.items.map((i, idx) => idx === action.index ? { ...i, notes: action.notes } : i),
       }
+
     case 'CLEAR_CART':
       return { ...state, items: [] }
+
     case 'SET_ORDER_TYPE':
       return { ...state, orderType: action.orderType }
+
     case 'SET_TABLE':
       return { ...state, tableNumber: action.tableNumber }
+
+    case 'SET_PICKUP_TIME':
+      return { ...state, pickupTime: action.pickupTime }
+
     case 'SET_RESTAURANT': {
-      // Switching restaurants clears existing cart to avoid mixed orders
       const sameSlug = state.restaurantSlug === action.slug
       return {
         ...state,
@@ -58,6 +84,10 @@ function cartReducer(state, action) {
         restaurantSlug: action.slug,
       }
     }
+
+    case 'RESET':
+      return initialState
+
     default:
       return state
   }
@@ -65,40 +95,59 @@ function cartReducer(state, action) {
 
 const initialState = {
   items: [],
-  orderType: 'dine_in',
-  tableNumber: null,
+  orderType: null,           // 'in_house' | 'takeaway' | 'pre_order'
+  tableNumber: null,         // for in_house / takeaway
+  pickupTime: null,          // ISO string for pre_order
   restaurantId: null,
   restaurantSlug: null,
 }
 
-export function CartProvider({ children }) {
-  const [cart, dispatch] = useReducer(cartReducer, initialState)
+function loadInitial() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return initialState
+    const parsed = JSON.parse(raw)
+    return { ...initialState, ...parsed }
+  } catch {
+    return initialState
+  }
+}
 
-  const total = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+export function CartProvider({ children }) {
+  const [cart, dispatch] = useReducer(cartReducer, initialState, loadInitial)
+
+  // Persist to localStorage on any change
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)) } catch {}
+  }, [cart])
+
+  const total = cart.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Convenience helpers
   const helpers = useMemo(() => ({
     items: cart.items,
     orderType: cart.orderType,
+    tableNumber: cart.tableNumber,
+    pickupTime: cart.pickupTime,
     restaurantSlug: cart.restaurantSlug,
     restaurantId: cart.restaurantId,
-    tableNumber: cart.tableNumber,
     addItem: (item) => dispatch({ type: 'ADD_ITEM', item }),
-    removeItem: (id) => dispatch({ type: 'REMOVE_ITEM', id }),
-    updateQuantity: (id, quantity) => dispatch({ type: 'UPDATE_QUANTITY', id, quantity }),
-    updateNotes: (id, notes) => dispatch({ type: 'UPDATE_NOTES', id, notes }),
-    increment: (id) => {
-      const it = cart.items.find(i => (i.id || i.item_id) === id)
-      dispatch({ type: 'UPDATE_QUANTITY', id, quantity: (it?.quantity || 0) + 1 })
+    removeItem: (index) => dispatch({ type: 'REMOVE_ITEM', index }),
+    updateQuantity: (index, quantity) => dispatch({ type: 'UPDATE_QUANTITY', index, quantity }),
+    updateNotes: (index, notes) => dispatch({ type: 'UPDATE_NOTES', index, notes }),
+    increment: (index) => {
+      const it = cart.items[index]
+      if (it) dispatch({ type: 'UPDATE_QUANTITY', index, quantity: it.quantity + 1 })
     },
-    decrement: (id) => {
-      const it = cart.items.find(i => (i.id || i.item_id) === id)
-      dispatch({ type: 'UPDATE_QUANTITY', id, quantity: Math.max(0, (it?.quantity || 0) - 1) })
+    decrement: (index) => {
+      const it = cart.items[index]
+      if (it) dispatch({ type: 'UPDATE_QUANTITY', index, quantity: Math.max(0, it.quantity - 1) })
     },
     clear: () => dispatch({ type: 'CLEAR_CART' }),
+    reset: () => dispatch({ type: 'RESET' }),
     setOrderType: (orderType) => dispatch({ type: 'SET_ORDER_TYPE', orderType }),
     setTable: (tableNumber) => dispatch({ type: 'SET_TABLE', tableNumber }),
+    setPickupTime: (pickupTime) => dispatch({ type: 'SET_PICKUP_TIME', pickupTime }),
     setRestaurant: (slug, restaurantId) => dispatch({ type: 'SET_RESTAURANT', slug, restaurantId }),
   }), [cart])
 

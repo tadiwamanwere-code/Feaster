@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Minus, ShoppingBag, Star } from 'lucide-react'
+import { ArrowLeft, Plus, Minus, ShoppingBag, Star, Check } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../../lib/services'
+import { useCart } from '../../context/CartContext'
+
+const SIZES = [
+  { key: 'small',   label: 'Small',   mult: 0.85 },
+  { key: 'regular', label: 'Regular', mult: 1.00 },
+  { key: 'large',   label: 'Large',   mult: 1.20 },
+]
 
 export default function CustomerDish() {
   const { slug, itemId } = useParams()
   const navigate = useNavigate()
+  const cart = useCart()
   const [restaurant, setRestaurant] = useState(null)
   const [item, setItem] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [size, setSize] = useState('regular')
   const [qty, setQty] = useState(1)
   const [notes, setNotes] = useState('')
   const [added, setAdded] = useState(false)
@@ -33,25 +42,25 @@ export default function CustomerDish() {
     return () => { cancelled = true }
   }, [slug, itemId, navigate])
 
-  const total = item ? Number(item.price) * qty : 0
+  const sizeMult = useMemo(() => SIZES.find(s => s.key === size)?.mult || 1, [size])
+  const unitPrice = item ? Number(item.price) * sizeMult : 0
+  const total = unitPrice * qty
 
   const addToCart = () => {
-    if (!item) return
-    try {
-      const cart = JSON.parse(localStorage.getItem('feaster:cart') || '{"items":[]}')
-      const existing = cart.items.find(i => i.id === item.id)
-      if (existing) existing.quantity += qty
-      else cart.items.push({
-        id: item.id,
-        name: item.name,
-        price: Number(item.price),
-        quantity: qty,
-        notes,
-        restaurant_slug: slug,
-        restaurant_name: restaurant?.name,
-      })
-      localStorage.setItem('feaster:cart', JSON.stringify(cart))
-    } catch {}
+    if (!item || !restaurant) return
+    if (cart.restaurantSlug !== restaurant.slug) {
+      cart.setRestaurant(restaurant.slug, restaurant.id)
+    }
+    cart.addItem({
+      id: item.id,
+      name: item.name,
+      price: unitPrice,
+      base_price: Number(item.price),
+      size,
+      quantity: qty,
+      notes,
+      image_url: item.image_url,
+    })
     setAdded(true)
     setTimeout(() => navigate(`/app/r/${slug}`), 700)
   }
@@ -86,8 +95,8 @@ export default function CustomerDish() {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-6 bg-white rounded-t-[28px] px-5 pt-6 space-y-5">
-        {/* Title row */}
+      <div className="relative -mt-6 bg-white rounded-t-[28px] px-5 pt-6 space-y-6">
+        {/* Title */}
         <div>
           <h1 className="text-2xl font-extrabold text-black tracking-tight">{item.name}</h1>
           <Link
@@ -107,6 +116,35 @@ export default function CustomerDish() {
         {item.description && (
           <p className="text-sm text-black/70 leading-relaxed">{item.description}</p>
         )}
+
+        {/* Size */}
+        <div>
+          <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">
+            Size
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {SIZES.map(s => {
+              const active = size === s.key
+              const sPrice = Number(item.price) * s.mult
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => setSize(s.key)}
+                  className={`flex flex-col items-center justify-center h-16 rounded-2xl text-sm font-bold transition-all ${
+                    active
+                      ? 'bg-black text-white'
+                      : 'bg-white text-black border-2 border-black/15'
+                  }`}
+                >
+                  <span>{s.label}</span>
+                  <span className={`text-[11px] font-semibold mt-0.5 ${active ? 'text-white/75' : 'text-black/45'}`}>
+                    ${sPrice.toFixed(2)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         {/* Notes */}
         <div>
@@ -160,7 +198,7 @@ export default function CustomerDish() {
             }`}
           >
             {added ? (
-              <>✓ Added to cart</>
+              <><Check className="w-4 h-4" /> Added to cart</>
             ) : (
               <>
                 <ShoppingBag className="w-4 h-4" />

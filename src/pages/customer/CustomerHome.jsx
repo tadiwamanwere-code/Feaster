@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, MapPin, Star, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Star } from 'lucide-react'
 import { getRestaurants } from '../../lib/services'
 
 export default function CustomerHome() {
   const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
-  const [city] = useState(() => localStorage.getItem('feaster:city') || '')
+  const city = '' // no onboarded city — show by city sections regardless
 
   useEffect(() => {
     let cancelled = false
@@ -55,11 +55,10 @@ export default function CustomerHome() {
     <div className="min-h-[100dvh] bg-white">
       {/* Header */}
       <header className="px-5 pt-7 pb-3">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-black/45 font-extrabold">
-          <MapPin className="w-3.5 h-3.5" /> Delivering to
-          <ChevronDown className="w-3 h-3" />
-        </div>
-        <div className="text-base font-extrabold text-black">{city || 'Set your city'}</div>
+        <p className="text-xs uppercase tracking-[0.18em] text-black/45 font-extrabold">
+          Pre-Order
+        </p>
+        <h1 className="text-2xl font-black text-black tracking-tight mt-1">Pick a restaurant</h1>
       </header>
 
       {/* Search */}
