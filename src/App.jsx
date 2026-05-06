@@ -37,10 +37,16 @@ const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
 const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
 const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 
-// Customer PWA — being rebuilt screen by screen
+// Customer PWA
 const WelcomeScreen = lazy(() => import('./pages/customer/WelcomeScreen'))
 const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
-const CustomerStub = lazy(() => import('./pages/customer/CustomerStub'))
+const CustomerOnboarding = lazy(() => import('./pages/customer/CustomerOnboarding'))
+const CustomerLayout = lazy(() => import('./pages/customer/CustomerLayout'))
+const CustomerHome = lazy(() => import('./pages/customer/CustomerHome'))
+const CustomerRestaurant = lazy(() => import('./pages/customer/CustomerRestaurant'))
+const CustomerDish = lazy(() => import('./pages/customer/CustomerDish'))
+const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
+const CustomerProfile = lazy(() => import('./pages/customer/CustomerProfile'))
 
 // Driver PWA
 const DriverAuth = lazy(() => import('./pages/driver/DriverAuth'))
@@ -89,10 +95,17 @@ export default function App() {
                     <Route path="edit/:id" element={<RestaurantForm />} />
                   </Route>
 
-                  {/* Customer PWA — Welcome + Auth only (rest being rebuilt) */}
+                  {/* Customer PWA */}
                   <Route path="/welcome" element={<WelcomeScreen />} />
+                  <Route path="/onboarding" element={<CustomerOnboarding />} />
                   <Route path="/app/auth" element={<CustomerAuth />} />
-                  <Route path="/app" element={<CustomerStub />} />
+                  <Route path="/app" element={<CustomerLayout />}>
+                    <Route index element={<CustomerHome />} />
+                    <Route path="orders" element={<CustomerOrders />} />
+                    <Route path="profile" element={<CustomerProfile />} />
+                    <Route path="r/:slug" element={<CustomerRestaurant />} />
+                    <Route path="r/:slug/dish/:itemId" element={<CustomerDish />} />
+                  </Route>
 
                   {/* Driver PWA */}
                   <Route path="/driver/auth" element={<DriverAuth />} />
