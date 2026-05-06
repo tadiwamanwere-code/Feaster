@@ -34,19 +34,12 @@ export default function WelcomeScreen() {
       {/* CTA */}
       <div className="space-y-3 animate-[welcomeRise_0.8s_ease_0.45s_both]">
         <button
-          onClick={() => navigate('/app/auth')}
+          onClick={() => navigate('/app')}
           className="group relative w-full h-16 rounded-full bg-black text-white font-extrabold text-base tracking-wide flex items-center justify-center gap-3 overflow-hidden transition-transform active:scale-[0.97] hover:-translate-y-0.5"
         >
           <span className="relative z-10">GET STARTED</span>
           <ArrowRight className="relative z-10 w-5 h-5 transition-transform group-hover:translate-x-1" />
           <span className="absolute inset-0 bg-white -translate-x-full group-hover:translate-x-0 transition-transform duration-500 opacity-0 group-hover:opacity-10" />
-        </button>
-
-        <button
-          onClick={() => navigate('/explore')}
-          className="w-full text-sm text-black/60 hover:text-black py-2 font-semibold"
-        >
-          Just browsing? <span className="underline underline-offset-4 text-black">Explore restaurants</span>
         </button>
       </div>
 

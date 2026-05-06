@@ -40,6 +40,7 @@ const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
 // Customer PWA — being rebuilt screen by screen
 const WelcomeScreen = lazy(() => import('./pages/customer/WelcomeScreen'))
 const CustomerAuth = lazy(() => import('./pages/customer/CustomerAuth'))
+const CustomerStub = lazy(() => import('./pages/customer/CustomerStub'))
 
 // Driver PWA
 const DriverAuth = lazy(() => import('./pages/driver/DriverAuth'))
@@ -91,6 +92,7 @@ export default function App() {
                   {/* Customer PWA — Welcome + Auth only (rest being rebuilt) */}
                   <Route path="/welcome" element={<WelcomeScreen />} />
                   <Route path="/app/auth" element={<CustomerAuth />} />
+                  <Route path="/app" element={<CustomerStub />} />
 
                   {/* Driver PWA */}
                   <Route path="/driver/auth" element={<DriverAuth />} />
