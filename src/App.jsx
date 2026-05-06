@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import { CustomerAuthProvider } from './context/CustomerAuthContext'
@@ -16,6 +16,8 @@ function Loading() {
 }
 
 // Existing pages
+const RootGate = lazy(() => import('./pages/RootGate'))
+const RestaurantSignup = lazy(() => import('./pages/RestaurantSignup'))
 const HomePage = lazy(() => import('./pages/HomePage'))
 const RestaurantPage = lazy(() => import('./pages/RestaurantPage'))
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
@@ -69,8 +71,9 @@ export default function App() {
             <BrowserRouter>
               <Suspense fallback={<Loading />}>
                 <Routes>
-                  {/* Root → Welcome */}
-                  <Route path="/" element={<Navigate to="/welcome" replace />} />
+                  {/* Root: desktop = business landing, mobile = customer flow */}
+                  <Route path="/" element={<RootGate />} />
+                  <Route path="/restaurant/signup" element={<RestaurantSignup />} />
 
                   {/* POS */}
                   <Route path="/system/login" element={<SystemLogin />} />
