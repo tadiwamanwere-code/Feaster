@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Download, X } from 'lucide-react'
+import { Download, X, Share, Plus } from 'lucide-react'
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
@@ -8,17 +8,14 @@ export default function PWAInstallPrompt() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    // Check if already dismissed this session
     if (sessionStorage.getItem('pwa-dismissed')) return
 
-    // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) return
+    if (window.navigator.standalone === true) return
 
-    // Detect iOS
     const ios = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !window.MSStream
     setIsIOS(ios)
 
-    // Listen for the beforeinstallprompt event (Android/Chrome)
     const handler = (e) => {
       e.preventDefault()
       setDeferredPrompt(e)
@@ -26,9 +23,8 @@ export default function PWAInstallPrompt() {
     }
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Show iOS prompt after a short delay
     if (ios) {
-      const timer = setTimeout(() => setShowPrompt(true), 3000)
+      const timer = setTimeout(() => setShowPrompt(true), 3500)
       return () => { clearTimeout(timer); window.removeEventListener('beforeinstallprompt', handler) }
     }
 
@@ -39,9 +35,7 @@ export default function PWAInstallPrompt() {
     if (deferredPrompt) {
       deferredPrompt.prompt()
       const result = await deferredPrompt.userChoice
-      if (result.outcome === 'accepted') {
-        setShowPrompt(false)
-      }
+      if (result.outcome === 'accepted') setShowPrompt(false)
       setDeferredPrompt(null)
     }
   }
@@ -55,50 +49,58 @@ export default function PWAInstallPrompt() {
   if (!showPrompt || dismissed) return null
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 max-w-md mx-auto animate-in">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4">
+    <div
+      className="fixed bottom-6 inset-x-4 z-50 max-w-md mx-auto"
+      style={{ animation: 'fadeSlide 0.4s ease both' }}
+    >
+      <div className="bg-black text-white rounded-2xl shadow-2xl p-4">
         <div className="flex items-start gap-3">
-          {/* App icon */}
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shrink-0">
-            <svg width="28" height="28" viewBox="0 0 512 512" fill="none">
-              <g stroke="white" strokeWidth="28" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M168 100L168 220Q168 260 198 260L198 412"/>
-                <path d="M138 100L138 200"/>
-                <path d="M198 100L198 200"/>
-                <path d="M314 100L314 260L314 412"/>
-                <path d="M314 100Q362 140 362 220Q362 260 314 260"/>
-              </g>
-            </svg>
+          {/* Black on white "F" mark */}
+          <div className="w-12 h-12 rounded-2xl bg-white text-black flex items-center justify-center shrink-0">
+            <span className="text-2xl" style={{ fontFamily: 'Pacifico, cursive' }}>F</span>
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-sm">Install Feaster</h3>
+            <h3 className="font-extrabold text-sm">Install Feaster</h3>
             {isIOS ? (
-              <p className="text-xs text-gray-500 mt-0.5">
-                Tap <span className="inline-flex items-center"><svg className="w-3.5 h-3.5 mx-0.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></span> then <strong>"Add to Home Screen"</strong>
+              <p className="text-[11px] text-white/70 mt-0.5 leading-relaxed">
+                Tap{' '}
+                <Share className="inline w-3.5 h-3.5 -mt-0.5 mx-0.5" />
+                {' '}then{' '}
+                <strong className="text-white">Add to Home Screen</strong>
               </p>
             ) : (
-              <p className="text-xs text-gray-500 mt-0.5">
-                Add to your home screen for quick access to menus and ordering
+              <p className="text-[11px] text-white/70 mt-0.5 leading-relaxed">
+                Get it on your home screen for one-tap ordering — no app store needed.
               </p>
             )}
           </div>
 
           <button
             onClick={handleDismiss}
-            className="p-1 hover:bg-gray-100 rounded-lg shrink-0"
+            aria-label="Dismiss"
+            className="p-1 rounded-full hover:bg-white/10 shrink-0"
           >
-            <X className="w-4 h-4 text-gray-400" />
+            <X className="w-4 h-4 text-white/55" />
           </button>
         </div>
 
         {!isIOS && deferredPrompt && (
           <button
             onClick={handleInstall}
-            className="mt-3 w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-700 transition-colors"
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-white text-black py-2.5 rounded-full text-sm font-extrabold active:scale-[0.97] transition-transform"
           >
             <Download className="w-4 h-4" />
             Install App
+          </button>
+        )}
+
+        {isIOS && (
+          <button
+            onClick={handleDismiss}
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-white/10 text-white py-2.5 rounded-full text-sm font-bold hover:bg-white/15 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Got it
           </button>
         )}
       </div>

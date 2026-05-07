@@ -18,7 +18,7 @@ export default function CustomerLayout() {
 
   return (
     <div className="min-h-[100dvh] bg-white pb-28">
-      <main className="max-w-2xl mx-auto">
+      <main key={location.pathname} className="max-w-2xl mx-auto page-fade-in">
         <Outlet />
       </main>
 

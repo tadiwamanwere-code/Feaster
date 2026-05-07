@@ -1,14 +1,18 @@
 {
   "name": "Feaster — Order Food Faster",
   "short_name": "Feaster",
-  "description": "Scan, order, eat. Restaurant ordering and pre-booking for Africa.",
-  "start_url": "/",
-  "id": "/",
+  "description": "Scan, order, eat. Restaurant ordering and pre-booking — works on any phone, no app store needed.",
+  "start_url": "/welcome",
+  "scope": "/",
+  "id": "/welcome",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-  "categories": ["food", "lifestyle"],
+  "theme_color": "#000000",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["food", "lifestyle", "shopping"],
   "icons": [
     {
       "src": "/icon-192.svg",
@@ -23,10 +27,39 @@
       "purpose": "any"
     },
     {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan Table QR",
+      "short_name": "Scan",
+      "description": "Scan a table QR to start ordering",
+      "url": "/app/scan",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Orders",
+      "short_name": "Orders",
+      "description": "View your order history",
+      "url": "/app/orders",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Pre-Order",
+      "short_name": "Browse",
+      "description": "Browse restaurants and pre-order",
+      "url": "/app",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
     }
   ],
   "screenshots": [],

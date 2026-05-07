@@ -82,3 +82,37 @@ body {
 input:focus, textarea:focus, select:focus {
   outline: none;
 }
+
+/* App-wide animation kit */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes shimmerLine {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.page-fade-in { animation: fadeSlide 0.3s ease both; }
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #F4F4F4;
+}
+.skeleton::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  animation: shimmerLine 1.6s linear infinite;
+}

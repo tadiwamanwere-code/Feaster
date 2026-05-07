@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, User, Phone, Clock, Utensils, ShoppingBag, AlertCircle, Loader } from 'lucide-react'
+import { ArrowLeft, User, Phone, Clock, Utensils, ShoppingBag, AlertCircle, Loader, Banknote, Smartphone } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { getRestaurantBySlug } from '../../lib/services'
 
@@ -11,10 +11,12 @@ const ORDER_LABEL = {
 }
 
 const PAYMENT_METHODS = [
-  { key: 'cash',     label: 'Cash on collection' },
-  { key: 'ecocash',  label: 'EcoCash' },
-  { key: 'innbucks', label: 'InnBucks' },
+  { key: 'cash',     label: 'Cash',     icon: Banknote,   sub: 'Pay on collection or delivery' },
+  { key: 'ecocash',  label: 'EcoCash',  icon: Smartphone, sub: 'USD or ZWL — confirm at restaurant' },
+  { key: 'innbucks', label: 'InnBucks', icon: Smartphone, sub: 'Mobile wallet payment' },
 ]
+
+const CASH_PRESETS = [5, 10, 20, 50, 100]
 
 function nowPlusMinutesIso(mins) {
   const d = new Date(Date.now() + mins * 60_000)
@@ -29,6 +31,7 @@ export default function CustomerCheckout() {
   const [name, setName] = useState(() => localStorage.getItem('feaster:name') || '')
   const [phone, setPhone] = useState(() => localStorage.getItem('feaster:phone') || '')
   const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [cashGiven, setCashGiven] = useState('')
   const [pickupTime, setPickupTime] = useState(() => cart.pickupTime || nowPlusMinutesIso(30))
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -44,6 +47,9 @@ export default function CustomerCheckout() {
 
   const subtotal = cart.total
   const total = subtotal // no fees yet
+  const cashGivenNum = Number(cashGiven) || 0
+  const change = paymentMethod === 'cash' ? Math.max(0, cashGivenNum - total) : 0
+  const cashShort = paymentMethod === 'cash' && cashGivenNum > 0 && cashGivenNum < total
 
   const isPreOrder = cart.orderType === 'pre_order'
   const minPickup = useMemo(() => nowPlusMinutesIso(15), [])
@@ -57,6 +63,9 @@ export default function CustomerCheckout() {
     if (isPreOrder && !pickupTime) return setError('Pick a pickup time')
     if (!isPreOrder && !cart.tableNumber && cart.orderType !== 'takeaway') {
       return setError('Table number missing — scan the QR code first')
+    }
+    if (paymentMethod === 'cash' && cashShort) {
+      return setError(`Cash given is less than total ($${total.toFixed(2)})`)
     }
 
     setSubmitting(true)
@@ -75,6 +84,8 @@ export default function CustomerCheckout() {
         table_number: cart.tableNumber,
         pickup_time: isPreOrder ? new Date(pickupTime).toISOString() : null,
         payment_method: paymentMethod,
+        cash_given: paymentMethod === 'cash' && cashGivenNum > 0 ? cashGivenNum : null,
+        change_due: paymentMethod === 'cash' && change > 0 ? change : null,
         customer: { name: name.trim(), phone: phone.trim() },
         restaurant: {
           slug: cart.restaurantSlug,
@@ -109,7 +120,7 @@ export default function CustomerCheckout() {
   if (!cart.items.length) return null
 
   return (
-    <div className="min-h-[100dvh] bg-white pb-32">
+    <div className="min-h-[100dvh] bg-white pb-32 page-fade-in">
       {/* Top bar */}
       <header className="px-5 pt-6 pb-3 flex items-center gap-3">
         <button
@@ -199,22 +210,112 @@ export default function CustomerCheckout() {
           <ul className="space-y-2">
             {PAYMENT_METHODS.map(p => {
               const active = paymentMethod === p.key
+              const Icon = p.icon
               return (
                 <li key={p.key}>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod(p.key)}
-                    className={`w-full flex items-center justify-between px-4 h-14 rounded-2xl border-2 font-bold text-sm transition-all ${
-                      active ? 'bg-black text-white border-black' : 'bg-white text-black border-black/15'
+                    className={`w-full flex items-center gap-3 px-4 h-16 rounded-2xl border-2 transition-all ${
+                      active ? 'bg-black text-white border-black' : 'bg-white text-black border-black/15 hover:border-black'
                     }`}
                   >
-                    <span>{p.label}</span>
-                    {active && <span className="w-3 h-3 rounded-full bg-white" />}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                      active ? 'bg-white text-black' : 'bg-[#F4F4F4] text-black'
+                    }`}>
+                      <Icon className="w-4 h-4" strokeWidth={2.4} />
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-bold text-sm">{p.label}</p>
+                      <p className={`text-[11px] font-medium truncate ${active ? 'text-white/65' : 'text-black/55'}`}>
+                        {p.sub}
+                      </p>
+                    </div>
+                    {active && <span className="w-3 h-3 rounded-full bg-white shrink-0" />}
                   </button>
                 </li>
               )
             })}
           </ul>
+
+          {/* Cash-with-change calculator */}
+          {paymentMethod === 'cash' && (
+            <div className="mt-3 bg-[#F4F4F4] rounded-2xl p-4 space-y-3 animate-[fadeSlide_0.25s_ease]">
+              <div>
+                <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 block mb-2">
+                  Paying with (so they bring the right change)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-bold text-black/55">$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.01"
+                    value={cashGiven}
+                    onChange={(e) => setCashGiven(e.target.value)}
+                    placeholder={`e.g. ${Math.ceil(total / 5) * 5}.00`}
+                    className="w-full h-14 pl-9 pr-4 bg-white border-2 border-black/15 focus:border-black rounded-2xl text-base font-bold text-black focus:outline-none transition-colors"
+                  />
+                </div>
+
+                {/* Quick presets */}
+                <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar">
+                  {CASH_PRESETS.filter(v => v >= total).slice(0, 5).map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setCashGiven(String(v))}
+                      className={`shrink-0 h-9 px-3 rounded-full text-xs font-bold transition-all ${
+                        Number(cashGiven) === v
+                          ? 'bg-black text-white'
+                          : 'bg-white text-black border border-black/15 hover:border-black'
+                      }`}
+                    >
+                      ${v}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setCashGiven(String(total.toFixed(2)))}
+                    className={`shrink-0 h-9 px-3 rounded-full text-xs font-bold transition-all ${
+                      Number(cashGiven) === total
+                        ? 'bg-black text-white'
+                        : 'bg-white text-black border border-black/15 hover:border-black'
+                    }`}
+                  >
+                    Exact (${total.toFixed(2)})
+                  </button>
+                </div>
+              </div>
+
+              {/* Change display */}
+              {cashGivenNum > 0 && (
+                <div
+                  className={`rounded-xl px-4 py-3 flex items-center justify-between transition-all ${
+                    cashShort
+                      ? 'bg-red-50 border border-red-200'
+                      : change > 0
+                        ? 'bg-black text-white'
+                        : 'bg-green-50 border border-green-200 text-green-800'
+                  }`}
+                >
+                  <div className="text-xs font-extrabold uppercase tracking-wider">
+                    {cashShort ? 'Short' : change > 0 ? 'Change owed' : 'Exact change'}
+                  </div>
+                  <div className="text-lg font-extrabold tabular-nums">
+                    {cashShort
+                      ? `–$${(total - cashGivenNum).toFixed(2)}`
+                      : `$${change.toFixed(2)}`}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[11px] text-black/55 font-medium leading-relaxed">
+                Tells the restaurant exactly what bill you're paying with — they'll bring change to your table or have it ready at pickup.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Items summary */}

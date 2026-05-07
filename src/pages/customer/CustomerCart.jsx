@@ -34,7 +34,7 @@ export default function CustomerCart() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white pb-32">
+    <div className="min-h-[100dvh] bg-white pb-32 page-fade-in">
       {/* Top bar */}
       <header className="px-5 pt-6 pb-3 flex items-center gap-3">
         <button

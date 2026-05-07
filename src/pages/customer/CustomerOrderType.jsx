@@ -37,7 +37,7 @@ export default function CustomerOrderType() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white flex flex-col px-6 pt-12 pb-8 max-w-md mx-auto">
+    <div className="min-h-[100dvh] bg-white flex flex-col px-6 pt-12 pb-8 max-w-md mx-auto page-fade-in">
       {/* Top bar */}
       <div className="flex items-center mb-8">
         <button
