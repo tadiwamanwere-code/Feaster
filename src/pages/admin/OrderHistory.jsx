@@ -48,26 +48,26 @@ export default function OrderHistory() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Order History</h2>
-          <p className="text-sm text-gray-500">{filtered.length} orders — ${totalRevenue.toFixed(2)} total</p>
+          <p className="text-sm text-black/45">{filtered.length} orders — ${totalRevenue.toFixed(2)} total</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/55" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by customer name..."
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full pl-9 pr-4 py-2.5 border border-black/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
           />
         </div>
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="px-3 py-2.5 border border-black/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
         >
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
@@ -79,7 +79,7 @@ export default function OrderHistory() {
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="px-3 py-2.5 border border-black/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
         >
           <option value="all">All Types</option>
           <option value="dine_in">Dine In</option>
@@ -89,17 +89,17 @@ export default function OrderHistory() {
       </div>
 
       {/* Orders table */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-black/8 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Customer</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Payment</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Total</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Date</th>
+              <tr className="bg-white border-b border-black/8">
+                <th className="text-left px-4 py-3 font-medium text-black/45">Customer</th>
+                <th className="text-left px-4 py-3 font-medium text-black/45">Type</th>
+                <th className="text-left px-4 py-3 font-medium text-black/45">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-black/45">Payment</th>
+                <th className="text-right px-4 py-3 font-medium text-black/45">Total</th>
+                <th className="text-right px-4 py-3 font-medium text-black/45">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -107,32 +107,32 @@ export default function OrderHistory() {
                 <>
                   <tr
                     key={order.id}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-white cursor-pointer"
                     onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                   >
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-900">{order.customer_name}</p>
-                      {order.table_id && <p className="text-xs text-gray-400">Table {order.table_id}</p>}
+                      {order.table_id && <p className="text-xs text-black/55">Table {order.table_id}</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 capitalize">
+                    <td className="px-4 py-3 text-black/35 capitalize">
                       {order.order_type?.replace('_', ' ')}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="px-4 py-3 text-gray-600 capitalize">{order.payment_method}</td>
+                    <td className="px-4 py-3 text-black/35 capitalize">{order.payment_method}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">${order.total?.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-gray-500">
+                    <td className="px-4 py-3 text-right text-black/45">
                       {order.created_at ? formatDate(new Date(order.created_at), 'MMM d, h:mm a') : '-'}
                     </td>
                   </tr>
                   {expandedOrder === order.id && (
                     <tr key={`${order.id}-details`}>
-                      <td colSpan={6} className="px-4 py-3 bg-gray-50">
+                      <td colSpan={6} className="px-4 py-3 bg-white">
                         <div className="space-y-1">
                           {order.items?.map((item, i) => (
                             <div key={i} className="flex justify-between text-sm">
-                              <span className="text-gray-600">{item.quantity}x {item.name}</span>
+                              <span className="text-black/35">{item.quantity}x {item.name}</span>
                               <span className="text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
                             </div>
                           ))}
@@ -147,7 +147,7 @@ export default function OrderHistory() {
         </div>
         {filtered.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No orders found</p>
+            <p className="text-black/45">No orders found</p>
           </div>
         )}
       </div>

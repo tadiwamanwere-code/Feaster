@@ -5,12 +5,10 @@ import { AuthProvider } from './context/AuthContext'
 import { CustomerAuthProvider } from './context/CustomerAuthContext'
 import { DriverAuthProvider } from './context/DriverAuthContext'
 
-import Layout from './components/Layout'
-
 function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-8 h-8 border-4 border-black/10 border-t-black rounded-full animate-spin" />
     </div>
   )
 }
@@ -18,11 +16,6 @@ function Loading() {
 // Existing pages
 const RootGate = lazy(() => import('./pages/RootGate'))
 const RestaurantSignup = lazy(() => import('./pages/RestaurantSignup'))
-const HomePage = lazy(() => import('./pages/HomePage'))
-const RestaurantPage = lazy(() => import('./pages/RestaurantPage'))
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
-const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'))
-const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage'))
 const KitchenDisplay = lazy(() => import('./pages/kitchen/KitchenDisplay'))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
@@ -34,7 +27,11 @@ const PreOrderCalendar = lazy(() => import('./pages/admin/PreOrderCalendar'))
 const RestaurantSettings = lazy(() => import('./pages/admin/RestaurantSettings'))
 const DeliveriesView = lazy(() => import('./pages/admin/DeliveriesView'))
 const PlatformLayout = lazy(() => import('./pages/platform/PlatformLayout'))
+const PlatformDashboard = lazy(() => import('./pages/platform/PlatformDashboard'))
 const PlatformRestaurants = lazy(() => import('./pages/platform/PlatformRestaurants'))
+const PlatformOrders = lazy(() => import('./pages/platform/PlatformOrders'))
+const PlatformCustomers = lazy(() => import('./pages/platform/PlatformCustomers'))
+const PlatformQRCodes = lazy(() => import('./pages/platform/PlatformQRCodes'))
 const RestaurantForm = lazy(() => import('./pages/platform/RestaurantForm'))
 const SystemLogin = lazy(() => import('./pages/pos/SystemLogin'))
 const POSDashboard = lazy(() => import('./pages/pos/POSDashboard'))
@@ -52,6 +49,7 @@ const CustomerCheckout = lazy(() => import('./pages/customer/CustomerCheckout'))
 const CustomerOrderSuccess = lazy(() => import('./pages/customer/CustomerOrderSuccess'))
 const CustomerOrders = lazy(() => import('./pages/customer/CustomerOrders'))
 const CustomerProfile = lazy(() => import('./pages/customer/CustomerProfile'))
+const TableRedirect = lazy(() => import('./pages/customer/TableRedirect'))
 
 // Driver PWA
 const DriverAuth = lazy(() => import('./pages/driver/DriverAuth'))
@@ -96,7 +94,11 @@ export default function App() {
 
                   {/* Platform admin */}
                   <Route path="/platform" element={<PlatformLayout />}>
-                    <Route index element={<PlatformRestaurants />} />
+                    <Route index element={<PlatformDashboard />} />
+                    <Route path="restaurants" element={<PlatformRestaurants />} />
+                    <Route path="orders" element={<PlatformOrders />} />
+                    <Route path="customers" element={<PlatformCustomers />} />
+                    <Route path="qr-codes" element={<PlatformQRCodes />} />
                     <Route path="add" element={<RestaurantForm />} />
                     <Route path="edit/:id" element={<RestaurantForm />} />
                   </Route>
@@ -130,21 +132,10 @@ export default function App() {
                     <Route path="profile" element={<DriverProfile />} />
                   </Route>
 
-                  {/* Public customer routes (existing) — /:slug catches everything, MUST be last */}
-                  <Route path="/explore" element={<Layout />}>
-                    <Route index element={<HomePage />} />
-                  </Route>
-                  <Route path="/order/:orderId" element={<Layout />}>
-                    <Route index element={<OrderConfirmationPage />} />
-                  </Route>
-                  <Route path="/my-orders" element={<Layout />}>
-                    <Route index element={<MyOrdersPage />} />
-                  </Route>
-                  <Route element={<Layout />}>
-                    <Route path="/:slug" element={<RestaurantPage />} />
-                    <Route path="/:slug/table/:tableNumber" element={<RestaurantPage />} />
-                    <Route path="/:slug/checkout" element={<CheckoutPage />} />
-                  </Route>
+                  {/* Backward-compat: old printed QR codes encoded /<slug>/table/<n> */}
+                  {/* and /<slug>. Redirect into the new in-app flow. */}
+                  <Route path="/:slug/table/:tableNumber" element={<TableRedirect withTable />} />
+                  <Route path="/:slug" element={<TableRedirect />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>

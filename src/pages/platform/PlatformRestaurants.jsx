@@ -48,11 +48,11 @@ export default function PlatformRestaurants() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">All Restaurants</h1>
-          <p className="text-sm text-gray-500">{restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''} on the platform</p>
+          <p className="text-sm text-black/45">{restaurants.length} restaurant{restaurants.length !== 1 ? 's' : ''} on the platform</p>
         </div>
         <Link
           to="/platform/add"
-          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-orange-700 transition-colors"
+          className="flex items-center gap-2 bg-black text-black px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-black transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Restaurant
@@ -62,15 +62,15 @@ export default function PlatformRestaurants() {
       {/* Restaurant cards */}
       <div className="grid gap-4">
         {restaurants.map(rest => (
-          <div key={rest.id} className={`bg-white rounded-xl border border-gray-100 overflow-hidden ${!rest.is_active ? 'opacity-60' : ''}`}>
+          <div key={rest.id} className={`bg-white rounded-xl border border-black/8 overflow-hidden ${!rest.is_active ? 'opacity-60' : ''}`}>
             <div className="flex items-stretch">
               {/* Cover/Logo */}
-              <div className="w-32 sm:w-48 shrink-0 bg-gradient-to-br from-orange-400 to-orange-600 relative">
+              <div className="w-32 sm:w-48 shrink-0 bg-gradient-to-br from-orange-400 to-black relative">
                 {rest.cover_photo_url ? (
                   <img src={rest.cover_photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl font-bold text-white/30">{rest.name[0]}</span>
+                    <span className="text-4xl font-bold text-black/30">{rest.name[0]}</span>
                   </div>
                 )}
                 {rest.logo_url && (
@@ -83,8 +83,8 @@ export default function PlatformRestaurants() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="font-semibold text-gray-900 text-lg">{rest.name}</h2>
-                    <p className="text-sm text-gray-500">{rest.cuisine_type}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+                    <p className="text-sm text-black/45">{rest.cuisine_type}</p>
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-black/55">
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5" />
                         {rest.city}
@@ -94,34 +94,34 @@ export default function PlatformRestaurants() {
                         {rest.is_active ? 'Active' : 'Inactive'}
                       </span>
                       {rest.subscription_tier && (
-                        <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full capitalize">{rest.subscription_tier}</span>
+                        <span className="bg-[#F4F4F4] text-black px-2 py-0.5 rounded-full capitalize">{rest.subscription_tier}</span>
                       )}
                     </div>
                     {rest.description && (
-                      <p className="text-sm text-gray-500 mt-2 line-clamp-1">{rest.description}</p>
+                      <p className="text-sm text-black/45 mt-2 line-clamp-1">{rest.description}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/8">
                   <Link
                     to={`/platform/edit/${rest.id}`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-black/35 hover:bg-gray-200"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Edit
                   </Link>
                   <Link
                     to={`/admin/${rest.slug}`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-black/35 hover:bg-gray-200"
                   >
                     <ChefHat className="w-3.5 h-3.5" />
                     Admin Panel
                   </Link>
                   <button
                     onClick={() => setQrRestaurant(rest)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 rounded-lg text-xs font-medium text-orange-600 hover:bg-orange-100"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F4F4] rounded-lg text-xs font-medium text-black hover:bg-[#F4F4F4]"
                   >
                     <QrCode className="w-3.5 h-3.5" />
                     QR Codes
@@ -130,14 +130,14 @@ export default function PlatformRestaurants() {
                     href={`/${rest.slug}`}
                     target="_blank"
                     rel="noopener"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-black/35 hover:bg-gray-200"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     View Menu
                   </a>
                   <button
                     onClick={() => handleToggleActive(rest)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-black/35 hover:bg-gray-200"
                   >
                     {rest.is_active ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     {rest.is_active ? 'Deactivate' : 'Activate'}
@@ -156,10 +156,10 @@ export default function PlatformRestaurants() {
         ))}
 
         {restaurants.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-            <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No restaurants yet</p>
-            <Link to="/platform/add" className="text-orange-600 font-medium text-sm mt-1 inline-block">
+          <div className="text-center py-16 bg-white rounded-xl border border-black/8">
+            <Building2 className="w-12 h-12 text-black/80 mx-auto mb-3" />
+            <p className="text-black/45">No restaurants yet</p>
+            <Link to="/platform/add" className="text-black font-medium text-sm mt-1 inline-block">
               Add your first restaurant
             </Link>
           </div>

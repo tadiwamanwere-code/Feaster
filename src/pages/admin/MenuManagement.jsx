@@ -133,11 +133,11 @@ export default function MenuManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Menu Management</h2>
-          <p className="text-sm text-gray-500">{items.length} items across {categories.length} categories</p>
+          <p className="text-sm text-black/45">{items.length} items across {categories.length} categories</p>
         </div>
         <button
           onClick={openAdd}
-          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-orange-700 transition-colors"
+          className="flex items-center gap-2 bg-black text-black px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-black transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Item
@@ -145,13 +145,13 @@ export default function MenuManagement() {
       </div>
 
       {items.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-          <Image className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No menu items yet</p>
-          <p className="text-sm text-gray-400 mt-1">Add your first item with a name, price, and photo</p>
+        <div className="text-center py-16 bg-white rounded-xl border border-black/8">
+          <Image className="w-12 h-12 text-black/80 mx-auto mb-3" />
+          <p className="text-black/45 font-medium">No menu items yet</p>
+          <p className="text-sm text-black/55 mt-1">Add your first item with a name, price, and photo</p>
           <button
             onClick={openAdd}
-            className="mt-4 inline-flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-orange-700"
+            className="mt-4 inline-flex items-center gap-2 bg-black text-black px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-black"
           >
             <Plus className="w-4 h-4" />
             Add First Item
@@ -162,45 +162,45 @@ export default function MenuManagement() {
       {/* Menu by category */}
       {categories.map(cat => (
         <div key={cat}>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">{cat}</h3>
+          <h3 className="text-sm font-semibold text-black/45 uppercase tracking-wider mb-3">{cat}</h3>
           <div className="space-y-2">
             {items.filter(i => i.category === cat).map(item => (
               <div
                 key={item.id}
-                className={`flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-gray-100 ${
+                className={`flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-black/8 ${
                   !item.is_available ? 'opacity-50' : ''
                 }`}
               >
-                <GripVertical className="w-4 h-4 text-gray-300 cursor-grab shrink-0" />
+                <GripVertical className="w-4 h-4 text-black/80 cursor-grab shrink-0" />
                 {item.image_url ? (
                   <img src={item.image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
                 ) : (
                   <div className="w-12 h-12 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center">
-                    <Image className="w-5 h-5 text-gray-300" />
+                    <Image className="w-5 h-5 text-black/80" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm">{item.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{item.description}</p>
+                  <p className="text-xs text-black/55 truncate">{item.description}</p>
                 </div>
                 <span className="text-sm font-semibold text-gray-900 shrink-0">${item.price.toFixed(2)}</span>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => toggleAvailability(item)}
-                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"
+                    className="p-1.5 hover:bg-black/5 rounded-lg text-black/55"
                     title={item.is_available ? 'Mark unavailable' : 'Mark available'}
                   >
                     {item.is_available ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => openEdit(item)}
-                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"
+                    className="p-1.5 hover:bg-black/5 rounded-lg text-black/55"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"
+                    className="p-1.5 hover:bg-red-50 rounded-lg text-black/55 hover:text-red-500"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -213,27 +213,27 @@ export default function MenuManagement() {
 
       {/* Add/Edit Modal */}
       {editItem !== null && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditItem(null)}>
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setEditItem(null)}>
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-black/8">
               <h3 className="font-semibold text-gray-900">
                 {editItem === 'new' ? 'Add Menu Item' : 'Edit Menu Item'}
               </h3>
-              <button onClick={() => setEditItem(null)} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={() => setEditItem(null)} className="p-1 hover:bg-black/5 rounded">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-5 space-y-4">
               {/* Image upload */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Item Photo</label>
+                <label className="text-sm font-medium text-black/25 mb-2 block">Item Photo</label>
                 {form.image_url ? (
                   <div className="relative inline-block">
-                    <img src={form.image_url} alt="" className="w-full h-40 rounded-xl object-cover border border-gray-200" />
+                    <img src={form.image_url} alt="" className="w-full h-40 rounded-xl object-cover border border-black/10" />
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, image_url: '' }))}
-                      className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center"
+                      className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-black rounded-full flex items-center justify-center"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -245,16 +245,16 @@ export default function MenuManagement() {
                   >
                     {uploading ? (
                       <div className="flex flex-col items-center gap-2 w-3/4">
-                        <Loader className="w-6 h-6 text-orange-500 animate-spin" />
+                        <Loader className="w-6 h-6 text-black animate-spin" />
                         <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                          <div className="bg-black h-1.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                         </div>
-                        <span className="text-xs text-gray-500">{uploadProgress}%</span>
+                        <span className="text-xs text-black/45">{uploadProgress}%</span>
                       </div>
                     ) : (
                       <>
-                        <Upload className="w-6 h-6 text-gray-400 mb-1" />
-                        <span className="text-sm text-gray-500">Click to upload photo</span>
+                        <Upload className="w-6 h-6 text-black/55 mb-1" />
+                        <span className="text-sm text-black/45">Click to upload photo</span>
                       </>
                     )}
                   </div>
@@ -271,12 +271,12 @@ export default function MenuManagement() {
                 )}
                 {!form.image_url && (
                   <div className="flex items-center gap-2 mt-2">
-                    <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
+                    <Link2 className="w-4 h-4 text-black/55 shrink-0" />
                     <input
                       type="url"
                       value={form.image_url || ''}
                       onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="flex-1 px-3 py-2 border border-black/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black"
                       placeholder="Or paste image URL..."
                     />
                   </div>
@@ -284,44 +284,44 @@ export default function MenuManagement() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Name *</label>
+                <label className="text-sm font-medium text-black/25 mb-1 block">Name *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="e.g. Grilled Chicken"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                <label className="text-sm font-medium text-black/25 mb-1 block">Description</label>
                 <textarea
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   rows={2}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                  className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
                   placeholder="Short description..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Price (USD) *</label>
+                  <label className="text-sm font-medium text-black/25 mb-1 block">Price (USD) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={form.price}
                     onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                     placeholder="0.00"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Category *</label>
+                  <label className="text-sm font-medium text-black/25 mb-1 block">Category *</label>
                   <input
                     type="text"
                     value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                     placeholder="e.g. Mains"
                     list="categories"
                   />
@@ -331,17 +331,17 @@ export default function MenuManagement() {
                 </div>
               </div>
             </div>
-            <div className="px-5 py-4 border-t border-gray-100 flex gap-3">
+            <div className="px-5 py-4 border-t border-black/8 flex gap-3">
               <button
                 onClick={() => setEditItem(null)}
-                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
+                className="flex-1 px-4 py-2.5 border border-black/10 rounded-lg text-sm font-medium text-black/35 hover:bg-white"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.name || !form.price || !form.category}
-                className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-black text-black rounded-lg text-sm font-medium hover:bg-black disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>

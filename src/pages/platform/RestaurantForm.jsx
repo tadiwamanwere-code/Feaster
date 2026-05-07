@@ -150,7 +150,7 @@ export default function RestaurantForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-black/15 border-t-orange-600 rounded-full animate-spin" />
       </div>
     )
   }
@@ -163,7 +163,7 @@ export default function RestaurantForm() {
           onClick={() => navigate('/platform')}
           className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
+          <ArrowLeft className="w-5 h-5 text-black/25" />
         </button>
         <h1 className="text-2xl font-bold text-gray-900">
           {isEdit ? 'Edit Restaurant' : 'Add New Restaurant'}
@@ -172,69 +172,69 @@ export default function RestaurantForm() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-black/8 p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Basic Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Restaurant Name *</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">Restaurant Name *</label>
               <input
                 type="text"
                 value={form.name}
                 onChange={e => handleNameChange(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="e.g. Fishmonger"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">URL Slug *</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">URL Slug *</label>
               <div className="flex items-center">
-                <span className="text-sm text-gray-400 mr-1">feaster.vercel.app/</span>
+                <span className="text-sm text-black/55 mr-1">feaster.vercel.app/</span>
                 <input
                   type="text"
                   value={form.slug}
                   onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2.5 border border-black/10 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="fishmonger"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Cuisine Type *</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">Cuisine Type *</label>
               <input
                 type="text"
                 value={form.cuisine_type}
                 onChange={e => setForm(f => ({ ...f, cuisine_type: e.target.value }))}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="e.g. Seafood & Grill"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">City *</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">City *</label>
               <select
                 value={form.city}
                 onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
               >
                 <option value="Harare">Harare</option>
                 <option value="Bulawayo">Bulawayo</option>
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">WhatsApp Number</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">WhatsApp Number</label>
               <input
                 type="tel"
                 value={form.whatsapp_number}
                 onChange={e => setForm(f => ({ ...f, whatsapp_number: e.target.value }))}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="+263771234567"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Subscription Tier</label>
+              <label className="text-sm font-medium text-black/25 mb-1 block">Subscription Tier</label>
               <select
                 value={form.subscription_tier}
                 onChange={e => setForm(f => ({ ...f, subscription_tier: e.target.value }))}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
               >
                 <option value="lite">Lite</option>
                 <option value="pro">Pro ($49/mo)</option>
@@ -243,32 +243,32 @@ export default function RestaurantForm() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+            <label className="text-sm font-medium text-black/25 mb-1 block">Description</label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               rows={3}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+              className="w-full px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
               placeholder="Tell customers about this restaurant..."
             />
           </div>
         </div>
 
         {/* Images */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-5">
+        <div className="bg-white rounded-xl border border-black/8 p-5 space-y-5">
           <h2 className="font-semibold text-gray-900">Images</h2>
 
           {/* Logo */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Restaurant Logo</label>
+            <label className="text-sm font-medium text-black/25 mb-2 block">Restaurant Logo</label>
             <div className="flex items-start gap-4">
               {form.logo_url ? (
                 <div className="relative shrink-0">
-                  <img src={form.logo_url} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                  <img src={form.logo_url} alt="Logo" className="w-20 h-20 rounded-xl object-cover border border-black/10" />
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, logo_url: '' }))}
-                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-black rounded-full flex items-center justify-center"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -278,21 +278,21 @@ export default function RestaurantForm() {
                   onClick={() => logoInputRef.current?.click()}
                   className="w-20 h-20 shrink-0 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-orange-400 transition-colors"
                 >
-                  {uploadingLogo ? <Loader className="w-5 h-5 text-gray-400 animate-spin" /> : <Image className="w-6 h-6 text-gray-400" />}
+                  {uploadingLogo ? <Loader className="w-5 h-5 text-black/55 animate-spin" /> : <Image className="w-6 h-6 text-black/55" />}
                 </div>
               )}
               <div className="flex-1 space-y-2">
-                <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="text-sm text-orange-600 font-medium hover:text-orange-700">
+                <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="text-sm text-black font-medium hover:text-black">
                   {uploadingLogo ? 'Processing...' : 'Choose file'}
                 </button>
-                <p className="text-xs text-gray-400">Square image — or paste a URL below</p>
+                <p className="text-xs text-black/55">Square image — or paste a URL below</p>
                 <div className="flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
+                  <Link2 className="w-4 h-4 text-black/55 shrink-0" />
                   <input
                     type="url"
                     value={form.logo_url?.startsWith('data:') ? '' : form.logo_url}
                     onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="flex-1 px-3 py-2 border border-black/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black"
                     placeholder="https://example.com/logo.png"
                   />
                 </div>
@@ -303,32 +303,32 @@ export default function RestaurantForm() {
 
           {/* Cover Photo */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Cover Photo</label>
+            <label className="text-sm font-medium text-black/25 mb-2 block">Cover Photo</label>
             {form.cover_photo_url ? (
               <div className="relative mb-2">
-                <img src={form.cover_photo_url} alt="Cover" className="w-full h-40 rounded-xl object-cover border border-gray-200" />
-                <button type="button" onClick={() => setForm(f => ({ ...f, cover_photo_url: '' }))} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center">
+                <img src={form.cover_photo_url} alt="Cover" className="w-full h-40 rounded-xl object-cover border border-black/10" />
+                <button type="button" onClick={() => setForm(f => ({ ...f, cover_photo_url: '' }))} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-black rounded-full flex items-center justify-center">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <div onClick={() => coverInputRef.current?.click()} className="w-full h-40 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition-colors mb-2">
-                {uploadingCover ? <Loader className="w-6 h-6 text-gray-400 animate-spin" /> : (
+                {uploadingCover ? <Loader className="w-6 h-6 text-black/55 animate-spin" /> : (
                   <>
-                    <Upload className="w-6 h-6 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500">Click to upload cover photo</span>
-                    <span className="text-xs text-gray-400 mt-0.5">Landscape image</span>
+                    <Upload className="w-6 h-6 text-black/55 mb-2" />
+                    <span className="text-sm text-black/45">Click to upload cover photo</span>
+                    <span className="text-xs text-black/55 mt-0.5">Landscape image</span>
                   </>
                 )}
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Link2 className="w-4 h-4 text-gray-400 shrink-0" />
+              <Link2 className="w-4 h-4 text-black/55 shrink-0" />
               <input
                 type="url"
                 value={form.cover_photo_url?.startsWith('data:') ? '' : form.cover_photo_url}
                 onChange={e => setForm(f => ({ ...f, cover_photo_url: e.target.value }))}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="flex-1 px-3 py-2 border border-black/10 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black"
                 placeholder="https://example.com/cover.jpg"
               />
             </div>
@@ -337,17 +337,17 @@ export default function RestaurantForm() {
         </div>
 
         {/* Opening Hours */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-black/8 p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Opening Hours</h2>
           <div className="space-y-2">
             {DAYS.map(day => (
               <div key={day} className="flex items-center gap-3">
-                <span className="w-24 text-sm text-gray-600">{DAY_LABELS[day]}</span>
+                <span className="w-24 text-sm text-black/35">{DAY_LABELS[day]}</span>
                 <input
                   type="text"
                   value={form.opening_hours[day] || ''}
                   onChange={e => updateHours(day, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 px-3 py-2 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="e.g. 11:00-22:00 or Closed"
                 />
               </div>
@@ -356,28 +356,28 @@ export default function RestaurantForm() {
         </div>
 
         {/* Tables */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-black/8 p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Table Setup</h2>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Number of Tables</label>
+            <label className="text-sm font-medium text-black/25 mb-1 block">Number of Tables</label>
             <input
               type="number"
               min="0"
               max="200"
               value={form.table_count}
               onChange={e => setForm(f => ({ ...f, table_count: e.target.value }))}
-              className="w-32 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-32 px-3 py-2.5 border border-black/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
               placeholder="0"
             />
-            <p className="text-xs text-gray-400 mt-1">Tables will be numbered 1 to N. Each gets a unique QR code for dine-in ordering.</p>
+            <p className="text-xs text-black/55 mt-1">Tables will be numbered 1 to N. Each gets a unique QR code for dine-in ordering.</p>
           </div>
         </div>
 
         {/* Payment & PIN */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-black/8 p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Payment & Access</h2>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Accepted Payment Methods</label>
+            <label className="text-sm font-medium text-black/25 mb-2 block">Accepted Payment Methods</label>
             <div className="flex flex-wrap gap-2">
               {['cash', 'ecocash', 'innbucks', 'card'].map(m => (
                 <button
@@ -386,8 +386,8 @@ export default function RestaurantForm() {
                   onClick={() => togglePayment(m)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors capitalize ${
                     form.payment_methods.includes(m)
-                      ? 'bg-orange-50 border-orange-300 text-orange-700'
-                      : 'bg-white border-gray-200 text-gray-500'
+                      ? 'bg-[#F4F4F4] border-orange-300 text-black'
+                      : 'bg-white border-black/10 text-black/45'
                   }`}
                 >
                   {m}
@@ -396,16 +396,16 @@ export default function RestaurantForm() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-1 block">Kitchen Display PIN</label>
+            <label className="text-sm font-medium text-black/25 mb-1 block">Kitchen Display PIN</label>
             <input
               type="text"
               inputMode="numeric"
               maxLength={6}
               value={form.kitchen_pin}
               onChange={e => setForm(f => ({ ...f, kitchen_pin: e.target.value }))}
-              className="w-32 px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-32 px-3 py-2.5 border border-black/10 rounded-lg text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-black"
             />
-            <p className="text-xs text-gray-400 mt-1">Staff enter this PIN to access the kitchen tablet</p>
+            <p className="text-xs text-black/55 mt-1">Staff enter this PIN to access the kitchen tablet</p>
           </div>
         </div>
 
@@ -419,14 +419,14 @@ export default function RestaurantForm() {
           <button
             type="button"
             onClick={() => navigate('/platform')}
-            className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+            className="px-6 py-3 border border-black/10 rounded-xl text-sm font-medium text-black/35 hover:bg-white"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-black text-black rounded-xl text-sm font-semibold hover:bg-black disabled:opacity-50 transition-colors"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Restaurant'}

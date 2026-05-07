@@ -77,19 +77,19 @@ export default function PreOrderCalendar() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-900">Pre-Order Calendar</h2>
-        <p className="text-sm text-gray-500">Upcoming scheduled orders and pickups</p>
+        <p className="text-sm text-black/45">Upcoming scheduled orders and pickups</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-black/8 p-5">
           {/* Month nav */}
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-gray-100 rounded-lg">
+            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-black/5 rounded-lg">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <h3 className="font-semibold text-gray-900">{formatDate(currentMonth, 'MMMM yyyy')}</h3>
-            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-gray-100 rounded-lg">
+            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-black/5 rounded-lg">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -97,7 +97,7 @@ export default function PreOrderCalendar() {
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="text-center text-xs font-medium text-gray-500 py-2">{d}</div>
+              <div key={d} className="text-center text-xs font-medium text-black/45 py-2">{d}</div>
             ))}
           </div>
 
@@ -114,16 +114,16 @@ export default function PreOrderCalendar() {
                   onClick={() => setSelectedDate(day)}
                   className={`relative p-2 rounded-lg text-sm transition-colors min-h-[48px] ${
                     isSelected
-                      ? 'bg-orange-600 text-white'
+                      ? 'bg-black text-black'
                       : isToday(day)
-                        ? 'bg-orange-50 text-orange-700 font-semibold'
-                        : 'hover:bg-gray-50 text-gray-700'
+                        ? 'bg-[#F4F4F4] text-black font-semibold'
+                        : 'hover:bg-white text-black/25'
                   }`}
                 >
                   <span>{formatDate(day, 'd')}</span>
                   {dayOrders.length > 0 && (
                     <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${
-                      isSelected ? 'bg-white' : 'bg-orange-500'
+                      isSelected ? 'bg-white' : 'bg-black'
                     }`} />
                   )}
                 </button>
@@ -133,7 +133,7 @@ export default function PreOrderCalendar() {
         </div>
 
         {/* Selected day orders */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <div className="bg-white rounded-xl border border-black/8 p-5">
           <h3 className="font-semibold text-gray-900 mb-4">
             {selectedDate ? formatDate(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
           </h3>
@@ -141,21 +141,21 @@ export default function PreOrderCalendar() {
             selectedOrders.length > 0 ? (
               <div className="space-y-3">
                 {selectedOrders.map(order => (
-                  <div key={order.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div key={order.id} className="p-3 bg-white rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                        <User className="w-4 h-4 text-black/55" />
                         <span className="text-sm font-medium">{order.customer_name}</span>
                       </div>
-                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-[#F4F4F4] text-black px-2 py-0.5 rounded-full">
                         {order.order_type === 'takeout' ? 'Pickup' : 'Pre-order'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                    <div className="flex items-center gap-1 text-xs text-black/45 mb-2">
                       <Clock className="w-3.5 h-3.5" />
                       {order.delivery_time && formatDate(new Date(order.delivery_time), 'h:mm a')}
                     </div>
-                    <div className="text-xs text-gray-600 space-y-0.5">
+                    <div className="text-xs text-black/35 space-y-0.5">
                       {order.items?.map((item, i) => (
                         <p key={i}>{item.quantity}x {item.name}</p>
                       ))}
@@ -165,10 +165,10 @@ export default function PreOrderCalendar() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 text-center py-8">No scheduled orders</p>
+              <p className="text-sm text-black/55 text-center py-8">No scheduled orders</p>
             )
           ) : (
-            <p className="text-sm text-gray-400 text-center py-8">
+            <p className="text-sm text-black/55 text-center py-8">
               Click a date to see scheduled orders
             </p>
           )}

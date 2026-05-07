@@ -1,12 +1,24 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Building2, PlusCircle, LogOut, Shield, Mail, Lock } from 'lucide-react'
+import {
+  LayoutDashboard, Building2, PlusCircle, QrCode, Users,
+  ShoppingBag, LogOut, Shield, Mail, Lock, Menu as MenuIcon, X, Loader,
+} from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 const PLATFORM_ADMINS = (import.meta.env.VITE_PLATFORM_ADMINS || '')
   .split(',')
   .map(e => e.trim())
   .filter(Boolean)
+
+const NAV = [
+  { to: '/platform',             label: 'Dashboard',      icon: LayoutDashboard, exact: true },
+  { to: '/platform/restaurants', label: 'Restaurants',    icon: Building2 },
+  { to: '/platform/orders',      label: 'Orders',         icon: ShoppingBag },
+  { to: '/platform/customers',   label: 'Customers',      icon: Users },
+  { to: '/platform/qr-codes',    label: 'QR Codes',       icon: QrCode },
+  { to: '/platform/add',         label: 'Add Restaurant', icon: PlusCircle },
+]
 
 function PlatformLogin() {
   const { login } = useAuth()
@@ -21,7 +33,7 @@ function PlatformLogin() {
     setLoading(true)
     try {
       const cred = await login(email, password)
-      if (!PLATFORM_ADMINS.includes(cred.user.email)) {
+      if (PLATFORM_ADMINS.length > 0 && !PLATFORM_ADMINS.includes(cred.user.email)) {
         setError('This account does not have platform admin access.')
       }
     } catch {
@@ -31,59 +43,64 @@ function PlatformLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+    <div className="min-h-[100dvh] bg-white flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Feaster Platform</h1>
-          <p className="text-gray-400 mt-1">Admin access only</p>
+          <h1 className="text-2xl font-black text-black tracking-tight">Feaster Platform</h1>
+          <p className="text-sm text-black/55 mt-1 font-medium">Admin access only</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-2xl p-6 border border-gray-700 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border-2 border-black/10 p-6 space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-1.5 block">Email</label>
+            <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-600 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full h-12 pl-10 pr-4 bg-white border-2 border-black/15 focus:border-black rounded-xl text-sm font-bold text-black focus:outline-none transition-colors"
                 placeholder="admin@feaster.app"
                 required
+                autoFocus
               />
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-1.5 block">Password</label>
+            <label className="text-xs font-extrabold uppercase tracking-wider text-black/65 mb-2 block">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-600 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter password"
+                className="w-full h-12 pl-10 pr-4 bg-white border-2 border-black/15 focus:border-black rounded-xl text-sm font-bold text-black focus:outline-none transition-colors"
+                placeholder="••••••••"
                 required
               />
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+          {error && (
+            <p className="text-sm font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-center">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 text-white py-3.5 rounded-xl font-semibold hover:bg-orange-700 disabled:opacity-50 transition-colors"
+            className="w-full h-12 rounded-full bg-black text-white font-extrabold disabled:opacity-50 active:scale-[0.97] transition-transform flex items-center justify-center gap-2"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Sign In'}
           </button>
         </form>
 
-        <Link to="/" className="block text-center text-sm text-gray-600 hover:text-gray-400 mt-6">
-          Back to Feaster
+        <Link to="/" className="block text-center text-sm text-black/45 hover:text-black mt-6 font-semibold">
+          ← Back to Feaster
         </Link>
       </div>
     </div>
@@ -93,86 +110,135 @@ function PlatformLogin() {
 export default function PlatformLayout() {
   const { user, loading, logout } = useAuth()
   const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="w-8 h-8 border-4 border-orange-400 border-t-orange-600 rounded-full animate-spin" />
+      <div className="min-h-[100dvh] flex items-center justify-center bg-white">
+        <Loader className="w-8 h-8 text-black animate-spin" />
       </div>
     )
   }
 
-  // Must be logged in with a real account (not anonymous)
   if (!user) return <PlatformLogin />
 
-  // Must be an authorized admin
-  if (!PLATFORM_ADMINS.includes(user.email)) {
+  if (PLATFORM_ADMINS.length > 0 && !PLATFORM_ADMINS.includes(user.email)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <Shield className="w-12 h-12 text-red-400 mx-auto mb-3" />
-          <h1 className="text-xl font-bold text-white">Access Denied</h1>
-          <p className="text-gray-400 mt-1">This account doesn't have platform access.</p>
-          <button onClick={logout} className="text-orange-400 text-sm font-medium mt-4 hover:text-orange-300">
-            Sign out and try another account
+      <div className="min-h-[100dvh] bg-white flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-black text-black tracking-tight">Access denied</h1>
+          <p className="text-sm text-black/55 mt-2 font-medium">
+            This account doesn't have platform access.
+          </p>
+          <button
+            onClick={logout}
+            className="mt-6 px-5 h-11 rounded-full bg-black text-white text-sm font-extrabold active:scale-95 transition-transform"
+          >
+            Sign out
           </button>
         </div>
       </div>
     )
   }
 
-  const navItems = [
-    { path: '/platform', label: 'Restaurants', icon: Building2, exact: true },
-    { path: '/platform/add', label: 'Add Restaurant', icon: PlusCircle },
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-4 h-4" />
-            </div>
-            <span className="font-bold">Feaster Platform</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">{user.email}</span>
-            <button onClick={logout} className="text-gray-400 hover:text-white">
-              <LogOut className="w-4 h-4" />
+    <div className="min-h-[100dvh] bg-white flex">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-black/10 transform transition-transform lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-full flex flex-col">
+          <div className="px-5 h-16 flex items-center justify-between border-b border-black/10">
+            <Link to="/platform" className="flex items-center gap-2">
+              <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <span className="block font-extrabold text-black text-sm tracking-tight">Feaster</span>
+                <span className="block text-[10px] text-black/55 font-extrabold tracking-[0.2em]">PLATFORM</span>
+              </div>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1.5 hover:bg-black/5 rounded-lg text-black/55"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
-        </div>
-      </header>
 
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 flex gap-1">
-          {navItems.map(item => {
-            const Icon = item.icon
-            const isActive = item.exact
-              ? location.pathname === item.path
-              : location.pathname.startsWith(item.path)
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  isActive
-                    ? 'border-orange-600 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+          <nav className="flex-1 px-3 py-4 space-y-1">
+            {NAV.map(item => {
+              const isActive = item.exact
+                ? location.pathname === item.to
+                : location.pathname.startsWith(item.to)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-bold transition-all ${
+                    isActive
+                      ? 'bg-black text-white'
+                      : 'text-black/65 hover:bg-black/5 hover:text-black'
+                  }`}
+                >
+                  <Icon className="w-[18px] h-[18px]" strokeWidth={2.4} />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="px-3 py-4 border-t border-black/10">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-extrabold text-xs shrink-0">
+                {user.email?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-extrabold text-black truncate">{user.email}</p>
+                <p className="text-[10px] text-black/45 font-bold uppercase tracking-wider">Admin</p>
+              </div>
+              <button
+                onClick={logout}
+                className="p-2 hover:bg-black/5 rounded-lg text-black/55 hover:text-black transition-colors"
+                title="Sign out"
               >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            )
-          })}
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
-      </nav>
+      </aside>
 
-      <main className="max-w-6xl mx-auto p-4 lg:p-6">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="lg:hidden h-14 bg-white border-b border-black/10 flex items-center px-4">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 -ml-2 hover:bg-black/5 rounded-lg text-black/65"
+            aria-label="Open menu"
+          >
+            <MenuIcon className="w-5 h-5" />
+          </button>
+          <span className="ml-3 font-extrabold text-black text-sm">Feaster Platform</span>
+        </header>
+
+        <main className="flex-1 p-5 lg:p-8 overflow-auto w-full max-w-7xl mx-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
