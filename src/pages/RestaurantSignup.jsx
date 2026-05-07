@@ -33,8 +33,7 @@ export default function RestaurantSignup() {
   const [slugTouched, setSlugTouched] = useState(false)
   const [city, setCity] = useState('Harare')
   const [cuisine, setCuisine] = useState('African')
-  const [contactName, setContactName] = useState('')
-  const [contactPhone, setContactPhone] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
 
@@ -73,11 +72,10 @@ export default function RestaurantSignup() {
     if (slug.length < 3)               return setError('URL handle must be at least 3 chars')
     if (slugStatus.available === false) return setError('That URL handle is taken')
     if (!city)                         return setError('Pick a city')
-    if (!cuisine)                      return setError('Pick a cuisine')
-    if (contactName.trim().length < 2) return setError('Contact name is required')
-    if (contactPhone.replace(/\D/g, '').length < 9) return setError('Valid phone number required')
-    if (pin.length < 4)                return setError('Kitchen PIN must be at least 4 digits')
-    if (pin !== pinConfirm)            return setError('PINs do not match')
+    if (!cuisine)                       return setError('Pick a cuisine')
+    if (whatsapp.replace(/\D/g, '').length < 9) return setError('Valid WhatsApp number required')
+    if (pin.length < 4)                 return setError('Kitchen PIN must be at least 4 digits')
+    if (pin !== pinConfirm)             return setError('PINs do not match')
 
     setSubmitting(true)
     try {
@@ -86,9 +84,17 @@ export default function RestaurantSignup() {
         slug,
         city,
         cuisine_type: cuisine,
-        owner_name: contactName.trim(),
-        owner_phone: contactPhone.trim(),
+        whatsapp_number: whatsapp.trim(),
         kitchen_pin: pin,
+        // Sensible defaults — owner can edit later in the admin
+        opening_hours: {
+          mon: '11:00-22:00', tue: '11:00-22:00', wed: '11:00-22:00',
+          thu: '11:00-22:00', fri: '11:00-23:00', sat: '11:00-23:00',
+          sun: '12:00-21:00',
+        },
+        payment_methods: ['cash', 'ecocash'],
+        subscription_tier: 'pro',
+        table_count: 0,
       })
       navigate('/system/login', {
         replace: true,
@@ -193,29 +199,20 @@ export default function RestaurantSignup() {
             </Field>
           </div>
 
-          {/* Contact */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Contact name">
-              <input
-                type="text"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-                placeholder="Manager"
-                className="input-pill"
-                required
-              />
-            </Field>
-            <Field label="Phone">
-              <input
-                type="tel"
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+263 77 123 4567"
-                className="input-pill"
-                required
-              />
-            </Field>
-          </div>
+          {/* WhatsApp number */}
+          <Field label="WhatsApp number">
+            <input
+              type="tel"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="+263 77 123 4567"
+              className="input-pill"
+              required
+            />
+            <p className="text-[11px] text-black/45 font-medium mt-2">
+              How customers reach you. You can edit it after sign-in.
+            </p>
+          </Field>
 
           {/* Kitchen PIN */}
           <div className="bg-[#F4F4F4] rounded-2xl p-4">
