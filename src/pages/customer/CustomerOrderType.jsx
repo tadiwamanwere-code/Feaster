@@ -1,30 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Utensils, ShoppingBag, Clock } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
-
-const TYPES = [
-  {
-    key: 'in_house',
-    title: 'Dine In',
-    desc: 'Eat at the restaurant — scan your table QR to order',
-    icon: Utensils,
-    needsScan: true,
-  },
-  {
-    key: 'takeaway',
-    title: 'Take Away',
-    desc: 'Order at the restaurant, take it with you',
-    icon: ShoppingBag,
-    needsScan: true,
-  },
-  {
-    key: 'pre_order',
-    title: 'Pre-Order',
-    desc: 'Order ahead and pick it up at a chosen time',
-    icon: Clock,
-    needsScan: false,
-  },
-]
+import { ORDER_TYPES } from '../../lib/orders'
 
 export default function CustomerOrderType() {
   const navigate = useNavigate()
@@ -38,7 +15,6 @@ export default function CustomerOrderType() {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col px-6 pt-12 pb-8 max-w-md mx-auto page-fade-in">
-      {/* Top bar */}
       <div className="flex items-center mb-8">
         <button
           onClick={() => navigate('/welcome')}
@@ -49,22 +25,18 @@ export default function CustomerOrderType() {
         </button>
       </div>
 
-      {/* Heading */}
       <div>
         <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-black/45">
           How are you ordering?
         </p>
-        <h1 className="text-3xl font-black text-black tracking-tight mt-2">
-          Pick your way.
-        </h1>
+        <h1 className="text-3xl font-black text-black tracking-tight mt-2">Pick your way.</h1>
         <p className="text-sm text-black/60 mt-2 max-w-xs">
           Eat at the restaurant, take it with you, or schedule a pickup time.
         </p>
       </div>
 
-      {/* Options */}
       <ul className="mt-8 space-y-3">
-        {TYPES.map(t => (
+        {ORDER_TYPES.map(t => (
           <li key={t.key}>
             <button
               onClick={() => choose(t)}
@@ -74,8 +46,8 @@ export default function CustomerOrderType() {
                 <t.icon className="w-5 h-5 text-white" strokeWidth={2.4} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-extrabold text-black text-base">{t.title}</h3>
-                <p className="text-xs text-black/55 mt-0.5 leading-relaxed">{t.desc}</p>
+                <h3 className="font-extrabold text-black text-base">{t.label}</h3>
+                <p className="text-xs text-black/55 mt-0.5 leading-relaxed">{t.sub}</p>
               </div>
               <ArrowRight className="w-5 h-5 text-black/40 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
             </button>
@@ -84,7 +56,6 @@ export default function CustomerOrderType() {
       </ul>
 
       <div className="flex-1" />
-
       <p className="text-center text-[11px] text-black/40 font-medium">
         You can change this anytime from the cart.
       </p>

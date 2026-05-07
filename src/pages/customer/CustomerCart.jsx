@@ -1,12 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Utensils } from 'lucide-react'
+import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
-
-const ORDER_LABEL = {
-  in_house: 'Dine In',
-  takeaway: 'Take Away',
-  pre_order: 'Pre-Order',
-}
+import OrderContextBanner from '../../components/customer/OrderContextBanner'
 
 export default function CustomerCart() {
   const navigate = useNavigate()
@@ -15,7 +10,7 @@ export default function CustomerCart() {
 
   if (!cart.items.length) {
     return (
-      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-6 text-center page-fade-in">
         <div className="w-20 h-20 rounded-full bg-[#F4F4F4] flex items-center justify-center mb-4">
           <ShoppingBag className="w-9 h-9 text-black/30" />
         </div>
@@ -35,7 +30,6 @@ export default function CustomerCart() {
 
   return (
     <div className="min-h-[100dvh] bg-white pb-32 page-fade-in">
-      {/* Top bar */}
       <header className="px-5 pt-6 pb-3 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
@@ -47,32 +41,15 @@ export default function CustomerCart() {
         <h1 className="text-2xl font-black text-black tracking-tight">Your cart</h1>
       </header>
 
-      {/* Order context */}
-      {(cart.orderType || cart.tableNumber) && (
-        <div className="mx-5 mb-3 bg-black text-white rounded-2xl px-4 py-3 flex items-center gap-3">
-          <Utensils className="w-5 h-5 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/60">
-              {ORDER_LABEL[cart.orderType] || 'Order'}
-            </p>
-            <p className="text-sm font-bold truncate">
-              {cart.tableNumber
-                ? `Table ${cart.tableNumber}`
-                : cart.pickupTime
-                  ? `Pickup ${new Date(cart.pickupTime).toLocaleString()}`
-                  : 'Set details at checkout'}
-            </p>
-          </div>
-          <Link
-            to="/app/order-type"
-            className="shrink-0 text-[10px] font-extrabold uppercase tracking-wider text-white/70 hover:text-white"
-          >
-            Change
-          </Link>
-        </div>
-      )}
+      <div className="px-5">
+        <OrderContextBanner
+          orderType={cart.orderType}
+          tableNumber={cart.tableNumber}
+          pickupTime={cart.pickupTime}
+          className="mb-3"
+        />
+      </div>
 
-      {/* Restaurant link */}
       {cart.restaurantSlug && (
         <Link
           to={`/app/r/${cart.restaurantSlug}`}
@@ -82,7 +59,6 @@ export default function CustomerCart() {
         </Link>
       )}
 
-      {/* Items */}
       <ul className="px-5 space-y-3">
         {cart.items.map((item, idx) => (
           <li key={idx} className="flex gap-3 bg-white rounded-2xl border border-black/10 p-3">
@@ -137,7 +113,6 @@ export default function CustomerCart() {
         ))}
       </ul>
 
-      {/* Subtotal box */}
       <div className="mx-5 mt-5 bg-[#F4F4F4] rounded-2xl p-4 space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-black/65 font-medium">Subtotal</span>
@@ -148,7 +123,6 @@ export default function CustomerCart() {
         </p>
       </div>
 
-      {/* Checkout bar */}
       <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-black/5 px-5 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <button
           onClick={() => navigate('/app/checkout')}

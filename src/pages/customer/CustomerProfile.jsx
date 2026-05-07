@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { User, Phone, LogOut, Trash2 } from 'lucide-react'
+import { loadOrders, clearOrders } from '../../lib/orders'
 
 export default function CustomerProfile() {
   const navigate = useNavigate()
@@ -11,10 +12,7 @@ export default function CustomerProfile() {
   useEffect(() => {
     setName(localStorage.getItem('feaster:name') || '')
     setPhone(localStorage.getItem('feaster:phone') || '')
-    try {
-      const orders = JSON.parse(localStorage.getItem('feaster:orders') || '[]')
-      setOrderCount(orders.length)
-    } catch { setOrderCount(0) }
+    setOrderCount(loadOrders().length)
   }, [])
 
   const save = () => {
@@ -31,9 +29,9 @@ export default function CustomerProfile() {
     navigate('/welcome', { replace: true })
   }
 
-  const clearOrders = () => {
+  const onClearOrders = () => {
     if (!window.confirm('Delete order history?')) return
-    localStorage.removeItem('feaster:orders')
+    clearOrders()
     setOrderCount(0)
   }
 
@@ -89,7 +87,7 @@ export default function CustomerProfile() {
       <div className="mt-10 space-y-2">
         {orderCount > 0 && (
           <button
-            onClick={clearOrders}
+            onClick={onClearOrders}
             className="w-full h-12 rounded-full bg-white border border-black/15 text-black/65 font-bold text-sm flex items-center justify-center gap-2 hover:bg-black/5 transition-colors"
           >
             <Trash2 className="w-4 h-4" /> Clear order history

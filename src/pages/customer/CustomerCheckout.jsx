@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, User, Phone, Clock, Utensils, ShoppingBag, AlertCircle, Loader, Banknote, Smartphone } from 'lucide-react'
+import { ArrowLeft, User, Phone, Clock, ShoppingBag, AlertCircle, Loader, Banknote, Smartphone } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { getRestaurantBySlug } from '../../lib/services'
-
-const ORDER_LABEL = {
-  in_house: 'Dine In',
-  takeaway: 'Take Away',
-  pre_order: 'Pre-Order',
-}
+import { nowPlusMinutesIso, generateOrderId, saveOrder } from '../../lib/orders'
+import OrderContextBanner from '../../components/customer/OrderContextBanner'
 
 const PAYMENT_METHODS = [
   { key: 'cash',     label: 'Cash',     icon: Banknote,   sub: 'Pay on collection or delivery' },
@@ -17,12 +13,6 @@ const PAYMENT_METHODS = [
 ]
 
 const CASH_PRESETS = [5, 10, 20, 50, 100]
-
-function nowPlusMinutesIso(mins) {
-  const d = new Date(Date.now() + mins * 60_000)
-  d.setSeconds(0, 0)
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
-}
 
 export default function CustomerCheckout() {
   const navigate = useNavigate()
@@ -74,9 +64,8 @@ export default function CustomerCheckout() {
       localStorage.setItem('feaster:name', name.trim())
       localStorage.setItem('feaster:phone', phone.trim())
 
-      // Save order to local history
-      const orderId = 'F' + Math.random().toString(36).slice(2, 8).toUpperCase()
-      const order = {
+      const orderId = generateOrderId()
+      saveOrder({
         id: orderId,
         created_at: new Date().toISOString(),
         status: 'pending',
@@ -102,11 +91,7 @@ export default function CustomerCheckout() {
         })),
         subtotal,
         total,
-      }
-
-      const orders = JSON.parse(localStorage.getItem('feaster:orders') || '[]')
-      orders.unshift(order)
-      localStorage.setItem('feaster:orders', JSON.stringify(orders.slice(0, 50)))
+      })
 
       cart.clear()
       cart.setPickupTime?.(null)
@@ -134,19 +119,15 @@ export default function CustomerCheckout() {
       </header>
 
       <form onSubmit={placeOrder} className="px-5 space-y-5">
-        {/* Order context */}
-        <div className="bg-black text-white rounded-2xl p-4 flex items-center gap-3">
-          <Utensils className="w-5 h-5 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/60">
-              {ORDER_LABEL[cart.orderType] || 'Order'}
-            </p>
-            <p className="text-sm font-bold truncate">
-              {restaurant?.name || cart.restaurantSlug}
-              {cart.tableNumber && <span className="text-white/70"> · Table {cart.tableNumber}</span>}
-            </p>
-          </div>
-        </div>
+        <OrderContextBanner
+          orderType={cart.orderType}
+          tableNumber={cart.tableNumber}
+          pickupTime={isPreOrder ? pickupTime : null}
+          showChange={false}
+        />
+        <p className="-mt-3 ml-1 text-[11px] font-bold text-black/55 truncate">
+          {restaurant?.name || cart.restaurantSlug}
+        </p>
 
         {/* Customer info */}
         <section>

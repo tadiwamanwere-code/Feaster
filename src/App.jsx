@@ -109,13 +109,13 @@ export default function App() {
                   {/* Full-screen flow steps (no bottom nav) */}
                   <Route path="/app/order-type" element={<CustomerOrderType />} />
                   <Route path="/app/scan" element={<CustomerScan />} />
-                  <Route path="/app/cart" element={<CustomerCart />} />
                   <Route path="/app/checkout" element={<CustomerCheckout />} />
                   <Route path="/app/order/:id" element={<CustomerOrderSuccess />} />
 
                   {/* Bottom-nav routes */}
                   <Route path="/app" element={<CustomerLayout />}>
                     <Route index element={<CustomerHome />} />
+                    <Route path="cart" element={<CustomerCart />} />
                     <Route path="orders" element={<CustomerOrders />} />
                     <Route path="profile" element={<CustomerProfile />} />
                     <Route path="r/:slug" element={<CustomerRestaurant />} />

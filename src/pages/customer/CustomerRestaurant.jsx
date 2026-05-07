@@ -1,14 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Star, MapPin, Clock, Utensils, ShoppingBag, X } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Clock, ShoppingBag } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../../lib/services'
 import { useCart } from '../../context/CartContext'
-
-const ORDER_LABEL = {
-  in_house: 'Dine In',
-  takeaway: 'Take Away',
-  pre_order: 'Pre-Order',
-}
+import OrderContextBanner from '../../components/customer/OrderContextBanner'
 
 export default function CustomerRestaurant() {
   const { slug } = useParams()
@@ -90,30 +85,13 @@ export default function CustomerRestaurant() {
         </button>
       </div>
 
-      {/* Order context banner */}
-      {(cart.orderType || cart.tableNumber) && (
-        <div className="mx-5 -mt-3 relative z-10 bg-black text-white rounded-2xl px-4 py-3 flex items-center gap-3">
-          <Utensils className="w-5 h-5 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/60">
-              {ORDER_LABEL[cart.orderType] || 'Order'}
-            </p>
-            <p className="text-sm font-bold truncate">
-              {cart.tableNumber
-                ? `Table ${cart.tableNumber}`
-                : cart.orderType === 'pre_order'
-                  ? 'Pickup time set at checkout'
-                  : 'No table'}
-            </p>
-          </div>
-          <Link
-            to="/app/order-type"
-            className="shrink-0 text-[10px] font-extrabold uppercase tracking-wider text-white/70 hover:text-white"
-          >
-            Change
-          </Link>
-        </div>
-      )}
+      <div className="mx-5 -mt-3 relative z-10">
+        <OrderContextBanner
+          orderType={cart.orderType}
+          tableNumber={cart.tableNumber}
+          pickupTime={cart.pickupTime}
+        />
+      </div>
 
       {/* Restaurant info card */}
       <div className="relative mt-3 mx-5 bg-white rounded-3xl border border-black/10 p-5">
