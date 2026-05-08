@@ -80,27 +80,53 @@ export default function CustomerOrderSuccess() {
               const done = i < stepIdx
               const current = i === stepIdx
               const pending = i > stepIdx
+              // Step-specific accent colors
+              const accent = (() => {
+                if (step.key === 'ready')      return 'var(--color-ready)'
+                if (step.key === 'preparing')  return 'var(--color-prepping)'
+                if (step.key === 'confirmed')  return 'var(--color-confirmed)'
+                return '#000000'
+              })()
               return (
                 <li key={step.key} className="flex items-center gap-3 relative">
                   {i < STATUS_STEPS.length - 1 && (
-                    <div className={`absolute left-[18px] top-9 w-0.5 h-7 ${done ? 'bg-black' : 'bg-black/10'}`} />
+                    <div
+                      className="absolute left-[18px] top-9 w-0.5 h-7 transition-colors"
+                      style={{ background: done ? accent : 'rgba(0,0,0,0.1)' }}
+                    />
                   )}
                   <div
-                    className={`relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                      done || current ? 'bg-black text-white' : 'bg-[#F4F4F4] text-black/30'
-                    }`}
+                    className="relative w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all"
+                    style={{
+                      background: done || current ? accent : '#F4F4F4',
+                      color: done || current ? 'white' : 'rgba(0,0,0,0.3)',
+                    }}
                   >
                     <Icon className="w-4 h-4" strokeWidth={2.4} />
                     {current && (
-                      <span className="absolute inset-0 rounded-full ring-2 ring-black/30"
-                            style={{ animation: 'pulse 1.5s ease infinite' }} />
+                      <span
+                        className="absolute inset-0 rounded-full status-pulse"
+                        style={{ boxShadow: `0 0 0 4px ${accent}33` }}
+                      />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-bold ${pending ? 'text-black/35' : 'text-black'}`}>
+                    <p
+                      className="text-sm font-bold"
+                      style={{
+                        color: pending ? 'rgba(0,0,0,0.35)' : (current ? accent : 'black'),
+                      }}
+                    >
                       {STATUS_LONG_LABEL[step.key] || step.label}
                     </p>
-                    {current && <p className="text-[11px] text-black/55 font-medium">In progress…</p>}
+                    {current && (
+                      <p
+                        className="text-[11px] font-medium"
+                        style={{ color: `${accent}` }}
+                      >
+                        {step.key === 'ready' ? 'Ready for you!' : 'In progress…'}
+                      </p>
+                    )}
                     {done && (
                       <p className="text-[11px] text-black/45 font-medium inline-flex items-center gap-1">
                         <Check className="w-3 h-3" /> Complete

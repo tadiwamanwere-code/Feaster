@@ -2,9 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, User, Phone, Clock, ShoppingBag, AlertCircle, Loader, Banknote, Smartphone } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
+import { useCustomerAuth } from '../../context/CustomerAuthContext'
 import { getRestaurantBySlug } from '../../lib/services'
+import { placeOrder as placeOrderRpc } from '../../lib/deliveries'
 import { nowPlusMinutesIso, generateOrderId, saveOrder } from '../../lib/orders'
 import OrderContextBanner from '../../components/customer/OrderContextBanner'
+
+// Cart's order_type → RPC's expected enum
+const ORDER_TYPE_MAP = {
+  in_house:  'dine_in',
+  takeaway:  'takeout',
+  pre_order: 'pre_order',
+  delivery:  'delivery',
+}
 
 const PAYMENT_METHODS = [
   { key: 'cash',     label: 'Cash',     icon: Banknote,   sub: 'Pay on collection or delivery' },
@@ -17,6 +27,7 @@ const CASH_PRESETS = [5, 10, 20, 50, 100]
 export default function CustomerCheckout() {
   const navigate = useNavigate()
   const cart = useCart()
+  const { profile } = useCustomerAuth()
   const [restaurant, setRestaurant] = useState(null)
   const [name, setName] = useState(() => localStorage.getItem('feaster:name') || '')
   const [phone, setPhone] = useState(() => localStorage.getItem('feaster:phone') || '')
@@ -44,7 +55,7 @@ export default function CustomerCheckout() {
   const isPreOrder = cart.orderType === 'pre_order'
   const minPickup = useMemo(() => nowPlusMinutesIso(15), [])
 
-  const placeOrder = (e) => {
+  const placeOrder = async (e) => {
     e?.preventDefault()
     setError('')
 
@@ -59,14 +70,49 @@ export default function CustomerCheckout() {
     }
 
     setSubmitting(true)
+
+    // Always persist contact for future orders
     try {
-      // Persist name + phone for future orders
       localStorage.setItem('feaster:name', name.trim())
       localStorage.setItem('feaster:phone', phone.trim())
+    } catch { /* storage disabled — non-fatal */ }
 
-      const orderId = generateOrderId()
+    let orderId = generateOrderId()
+    let dbOrderId = null
+
+    // ── Write to Supabase if the customer is signed in ──
+    // The place_order RPC requires auth + a customer profile, so guests fall
+    // back to the local-only flow below.
+    if (profile?.id && cart.restaurantId) {
+      try {
+        const result = await placeOrderRpc({
+          restaurantId:  cart.restaurantId,
+          items: cart.items.map(i => ({
+            item_id:  i.id || i.item_id,
+            quantity: i.quantity,
+            notes:    i.notes || '',
+          })),
+          orderType:     ORDER_TYPE_MAP[cart.orderType] || 'dine_in',
+          paymentMethod,
+          scheduledFor:  isPreOrder ? new Date(pickupTime).toISOString() : null,
+          customerNotes: null,
+        })
+        if (result?.order_id) {
+          dbOrderId = result.order_id
+          orderId = result.order_id
+        }
+      } catch (err) {
+        console.error('placeOrder RPC failed, falling back to local-only:', err)
+        // We'll still complete the order locally so the customer isn't blocked.
+      }
+    }
+
+    // Save to localStorage so the tracking + history pages work offline-first.
+    // If we got a DB id, that is the canonical id.
+    try {
       saveOrder({
         id: orderId,
+        db_order_id: dbOrderId,
         created_at: new Date().toISOString(),
         status: 'pending',
         order_type: cart.orderType,
@@ -97,7 +143,7 @@ export default function CustomerCheckout() {
       cart.setPickupTime?.(null)
       navigate(`/app/order/${orderId}`, { replace: true })
     } catch (err) {
-      setError(err?.message || 'Failed to place order')
+      setError(err?.message || 'Failed to save order locally')
       setSubmitting(false)
     }
   }

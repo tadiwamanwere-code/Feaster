@@ -1,10 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { Home, ShoppingBag, ClipboardList, User } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 
 const TABS = [
   { to: '/app',         icon: Home,          label: 'Home',    end: true },
-  { to: '/app/cart',    icon: ShoppingBag,   label: 'Cart',    badge: true },
+  { to: '/app/cart',    icon: ShoppingBag,   label: 'Cart',    badge: true, accent: 'cart' },
   { to: '/app/orders',  icon: ClipboardList, label: 'Orders' },
   { to: '/app/profile', icon: User,          label: 'Profile' },
 ]
@@ -12,6 +13,18 @@ const TABS = [
 export default function CustomerLayout() {
   const location = useLocation()
   const { itemCount } = useCart()
+  const [bouncing, setBouncing] = useState(false)
+  const lastCount = useRef(itemCount)
+
+  // Bounce the cart icon every time the count changes
+  useEffect(() => {
+    if (itemCount !== lastCount.current) {
+      lastCount.current = itemCount
+      setBouncing(true)
+      const t = setTimeout(() => setBouncing(false), 500)
+      return () => clearTimeout(t)
+    }
+  }, [itemCount])
 
   // Active tab index for the sliding indicator
   const activeIndex = TABS.findIndex(t =>
@@ -40,42 +53,53 @@ export default function CustomerLayout() {
             }}
           />
 
-          {TABS.map(t => (
-            <NavLink
-              key={t.to}
-              to={t.to}
-              end={t.end}
-              className={({ isActive }) =>
-                `relative z-10 flex items-center justify-center gap-1.5 h-12 rounded-full font-bold text-sm transition-colors ${
-                  isActive ? 'text-white' : 'text-white/60 hover:text-white/90'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span className="relative shrink-0">
-                    <t.icon className="w-5 h-5" strokeWidth={2.4} />
-                    {t.badge && itemCount > 0 && (
-                      <span
-                        className={`absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-[#1F1F1F] ${
-                          isActive ? 'bg-white text-black' : 'bg-white text-black'
+          {TABS.map(t => {
+            const isCart = t.accent === 'cart'
+            const cartActive = isCart && itemCount > 0
+            return (
+              <NavLink
+                key={t.to}
+                to={t.to}
+                end={t.end}
+                className={({ isActive }) =>
+                  `relative z-10 flex items-center justify-center gap-1.5 h-12 rounded-full font-bold text-sm transition-colors ${
+                    isActive ? 'text-white' : 'text-white/60 hover:text-white/90'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className={`relative shrink-0 ${bouncing && isCart ? 'cart-bounce' : ''}`}
+                    >
+                      <t.icon
+                        className={`w-5 h-5 transition-colors ${
+                          cartActive
+                            ? 'text-[var(--color-cart)]'
+                            : isActive ? 'text-white' : ''
                         }`}
-                      >
-                        {itemCount > 99 ? '99+' : itemCount}
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                      isActive ? 'max-w-[64px] opacity-100' : 'max-w-0 opacity-0'
-                    }`}
-                  >
-                    {t.label}
-                  </span>
-                </>
-              )}
-            </NavLink>
-          ))}
+                        strokeWidth={2.4}
+                      />
+                      {t.badge && itemCount > 0 && (
+                        <span
+                          className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-[#1F1F1F] bg-[var(--color-cart)] text-white"
+                        >
+                          {itemCount > 99 ? '99+' : itemCount}
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                        isActive ? 'max-w-[64px] opacity-100' : 'max-w-0 opacity-0'
+                      }`}
+                    >
+                      {t.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            )
+          })}
         </div>
       </nav>
     </div>

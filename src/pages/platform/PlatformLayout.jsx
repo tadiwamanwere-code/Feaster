@@ -177,31 +177,31 @@ export default function PlatformLayout() {
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-black/10 transform transition-transform lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-[var(--color-academic-paper)] border-r border-[var(--color-academic-border)] transform transition-transform lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="h-full flex flex-col">
-          <div className="px-5 h-16 flex items-center justify-between border-b border-black/10">
-            <Link to="/platform" className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-black rounded-xl flex items-center justify-center">
-                <Shield className="w-4 h-4 text-white" />
+          <div className="px-4 h-14 flex items-center justify-between border-b border-[var(--color-academic-border)]">
+            <Link to="/platform" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                <Shield className="w-3.5 h-3.5 text-white" strokeWidth={2} />
               </div>
-              <div>
-                <span className="block font-extrabold text-black text-sm tracking-tight">Feaster</span>
-                <span className="block text-[10px] text-black/55 font-extrabold tracking-[0.2em]">PLATFORM</span>
+              <div className="leading-tight">
+                <span className="block font-semibold text-black text-[13px] tracking-tight">Feaster</span>
+                <span className="block text-[9px] text-[var(--color-academic-muted)] font-bold tracking-[0.18em] uppercase">Platform</span>
               </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 hover:bg-black/5 rounded-lg text-black/55"
+              className="lg:hidden w-8 h-8 rounded-md hover:bg-[var(--color-academic-soft)] text-[var(--color-academic-muted)] flex items-center justify-center"
               aria-label="Close menu"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <nav className="flex-1 px-3 py-4 space-y-1">
+          <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
             {NAV.map(item => {
               const isActive = item.exact
                 ? location.pathname === item.to
@@ -212,34 +212,35 @@ export default function PlatformLayout() {
                   key={item.to}
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 h-11 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-2.5 h-9 px-3 rounded-md text-[13px] font-medium transition-colors ${
                     isActive
-                      ? 'bg-black text-white'
-                      : 'text-black/65 hover:bg-black/5 hover:text-black'
+                      ? 'bg-[var(--color-academic-soft-2)] text-black'
+                      : 'text-[var(--color-academic-muted)] hover:bg-[var(--color-academic-soft)] hover:text-black'
                   }`}
                 >
-                  <Icon className="w-[18px] h-[18px]" strokeWidth={2.4} />
+                  <Icon className="w-[15px] h-[15px]" strokeWidth={1.75} />
                   {item.label}
                 </Link>
               )
             })}
           </nav>
 
-          <div className="px-3 py-4 border-t border-black/10">
-            <div className="flex items-center gap-3 px-2">
-              <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center font-extrabold text-xs shrink-0">
+          <div className="px-3 py-3 border-t border-[var(--color-academic-border)]">
+            <div className="flex items-center gap-2.5 px-2">
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                 {user.email?.[0]?.toUpperCase() || '?'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-extrabold text-black truncate">{user.email}</p>
-                <p className="text-[10px] text-black/45 font-bold uppercase tracking-wider">Admin</p>
+                <p className="text-[12px] font-semibold text-black truncate">{user.email}</p>
+                <p className="text-[10px] text-[var(--color-academic-muted)] font-medium">Platform Admin</p>
               </div>
               <button
                 onClick={logout}
-                className="p-2 hover:bg-black/5 rounded-lg text-black/55 hover:text-black transition-colors"
+                className="w-8 h-8 rounded-md hover:bg-[var(--color-academic-soft)] text-[var(--color-academic-muted)] hover:text-black flex items-center justify-center transition-colors"
                 title="Sign out"
+                aria-label="Sign out"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

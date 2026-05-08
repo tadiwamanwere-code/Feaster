@@ -32,6 +32,28 @@
   --color-feaster-soft:  #F4F4F4;
   --color-feaster-line:  #E5E5E5;
 
+  /* Customer PWA — semantic accents that bring the app to life */
+  --color-cart:        #2563EB;   /* blue — cart, "in flight" */
+  --color-cart-soft:   #DBEAFE;
+  --color-ready:       #16A34A;   /* green — order ready */
+  --color-ready-soft:  #DCFCE7;
+  --color-prepping:    #EA580C;   /* warm orange — preparing */
+  --color-prepping-soft: #FFEDD5;
+  --color-confirmed:   #7C3AED;   /* violet — confirmed */
+  --color-confirmed-soft: #EDE9FE;
+
+  /* Platform-design tokens for admin/restaurant dashboards */
+  --color-academic-bg:           #FFFFFF;
+  --color-academic-paper:        #F9F9F9;
+  --color-academic-soft:         #F3F4F6;
+  --color-academic-soft-2:       #E5E7EB;
+  --color-academic-border:       #E5E5E5;
+  --color-academic-ink:          #000000;
+  --color-academic-accent:       #000000;
+  --color-academic-accent-light: #333333;
+  --color-academic-muted:        #6B7280;
+  --color-academic-wine:         #111111;
+
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   --font-logo: "Pacifico", "Plus Jakarta Sans", cursive;
 
@@ -103,6 +125,38 @@ input:focus, textarea:focus, select:focus {
 }
 
 .page-fade-in { animation: fadeSlide 0.3s ease both; }
+
+/* Cart-bounce: triggered when item count changes */
+@keyframes cartBounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.25); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.cart-bounce { animation: cartBounce 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+/* Tap-pop: brief scale on add-to-cart */
+@keyframes tapPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+.tap-pop { animation: tapPop 0.25s ease; }
+
+/* Fly-to-cart ghost particle */
+@keyframes flyToCart {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  60%  { opacity: 0.9; }
+  100% { transform: var(--fly-end, translate(0, 200px)) scale(0.2); opacity: 0; }
+}
+.fly-to-cart { animation: flyToCart 0.6s cubic-bezier(0.55, 0, 0.55, 1) forwards; }
+
+/* Pulsing dot for live status */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.status-pulse { animation: statusPulse 1.6s ease-in-out infinite; }
 
 /* Skeleton shimmer */
 .skeleton {

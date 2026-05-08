@@ -119,28 +119,26 @@ export default function CustomerHome() {
 function PromoCarousel({ promos }) {
   const [idx, setIdx] = useState(0)
   const trackRef = useRef(null)
-  const startX = useRef(0)
-  const startScroll = useRef(0)
-  const dragging = useRef(false)
+  const userTouchedRef = useRef(false)
 
-  // Auto-advance every 5s
+  // Auto-advance every 5s — pauses if user has manually scrolled
   useEffect(() => {
+    if (userTouchedRef.current) return
     const t = setInterval(() => {
       setIdx(i => (i + 1) % promos.length)
     }, 5000)
     return () => clearInterval(t)
   }, [promos.length])
 
-  // Sync scroll position to active idx
+  // Sync scroll position to active idx (full-bleed: no offset)
   useEffect(() => {
     const el = trackRef.current
     if (!el) return
     const card = el.children[idx]
-    if (card) el.scrollTo({ left: card.offsetLeft - 20, behavior: 'smooth' })
+    if (card) el.scrollTo({ left: card.offsetLeft, behavior: 'smooth' })
   }, [idx])
 
   const onScroll = () => {
-    if (dragging.current) return
     const el = trackRef.current
     if (!el) return
     const cardW = el.children[0]?.offsetWidth || 1
@@ -148,36 +146,46 @@ function PromoCarousel({ promos }) {
     if (newIdx !== idx && newIdx >= 0 && newIdx < promos.length) setIdx(newIdx)
   }
 
+  // Color rotation for each slide so the carousel feels alive even with no images
+  const TINTS = [
+    'from-blue-700 via-blue-900',
+    'from-rose-700 via-rose-900',
+    'from-emerald-700 via-emerald-900',
+    'from-amber-700 via-amber-900',
+    'from-violet-700 via-violet-900',
+  ]
+
   return (
-    <div className="pb-4">
+    <div className="pb-5">
       <div
         ref={trackRef}
         onScroll={onScroll}
-        className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory px-5"
-        style={{ scrollPaddingLeft: '20px' }}
+        onTouchStart={() => { userTouchedRef.current = true }}
+        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory"
       >
-        {promos.map(r => (
+        {promos.map((r, i) => (
           <Link
             key={r.id}
             to={`/app/r/${r.slug}`}
-            className="snap-start shrink-0 relative w-[88%] h-40 rounded-3xl overflow-hidden bg-black"
+            className="snap-start shrink-0 relative w-full h-56 overflow-hidden bg-black"
           >
             <img
               src={r.cover_photo_url}
               alt=""
-              loading="lazy"
+              loading={i === 0 ? 'eager' : 'lazy'}
               decoding="async"
-              className="absolute inset-0 w-full h-full object-cover opacity-70"
+              className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-            <div className="relative h-full flex flex-col justify-end p-5 text-white">
-              <span className="inline-block w-fit px-2 py-0.5 bg-white text-black rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-2">
+            <div className={`absolute inset-0 bg-gradient-to-t ${TINTS[i % TINTS.length]} to-transparent opacity-60 mix-blend-multiply`} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="relative h-full flex flex-col justify-end p-6 text-white">
+              <span className="inline-block w-fit px-2.5 py-1 bg-white text-black rounded-full text-[10px] font-extrabold uppercase tracking-[0.15em] mb-2">
                 Featured
               </span>
-              <h3 className="text-xl font-extrabold tracking-tight leading-tight">
+              <h3 className="text-2xl font-black tracking-tight leading-tight">
                 {r.name}
               </h3>
-              <p className="text-xs text-white/80 mt-1">
+              <p className="text-sm text-white/85 mt-1 font-semibold">
                 {r.cuisine_type} · {r.city}
               </p>
             </div>
@@ -185,13 +193,13 @@ function PromoCarousel({ promos }) {
         ))}
       </div>
       {/* Dots */}
-      <div className="flex justify-center gap-1.5 mt-3">
+      <div className="flex justify-center gap-1.5 mt-3 px-5">
         {promos.map((_, i) => (
           <button
             key={i}
-            onClick={() => setIdx(i)}
+            onClick={() => { setIdx(i); userTouchedRef.current = true }}
             className={`h-1.5 rounded-full transition-all ${
-              i === idx ? 'w-6 bg-black' : 'w-1.5 bg-black/20'
+              i === idx ? 'w-7 bg-black' : 'w-1.5 bg-black/20'
             }`}
             aria-label={`Slide ${i + 1}`}
           />

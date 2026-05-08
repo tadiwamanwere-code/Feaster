@@ -123,13 +123,13 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-black/45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-academic-muted)]">
           {restaurant?.cuisine_type || 'Restaurant'} · {restaurant?.city || '—'}
         </p>
-        <h1 className="text-3xl font-black text-black tracking-tight mt-1">
+        <h1 className="text-2xl font-semibold text-black tracking-tight mt-1">
           {restaurant?.name || 'Dashboard'}
         </h1>
-        <p className="text-sm text-black/55 mt-1 font-medium">Today's snapshot.</p>
+        <p className="text-[13px] text-[var(--color-academic-muted)] mt-1">Today's snapshot.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -146,29 +146,29 @@ export default function AdminDashboard() {
             <Link
               key={link.to}
               to={link.to}
-              className="group flex items-center gap-4 p-4 bg-white rounded-2xl border border-black/10 hover:border-black hover:-translate-y-0.5 transition-all"
+              className="group flex items-center gap-3 p-4 bg-white rounded-xl border border-[var(--color-academic-border)] hover:border-black transition-colors"
             >
-              <div className="w-11 h-11 rounded-xl bg-[#F4F4F4] flex items-center justify-center group-hover:bg-black transition-colors">
-                <Icon className="w-5 h-5 text-black group-hover:text-white transition-colors" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--color-academic-soft)] flex items-center justify-center group-hover:bg-black transition-colors">
+                <Icon className="w-[18px] h-[18px] text-black group-hover:text-white transition-colors" strokeWidth={1.75} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-extrabold text-black">{link.label}</p>
-                <p className="text-xs text-black/55 truncate">{link.desc}</p>
+                <p className="text-[13px] font-semibold text-black">{link.label}</p>
+                <p className="text-[11px] text-[var(--color-academic-muted)] truncate">{link.desc}</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-black/30 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
+              <ArrowRight className="w-3.5 h-3.5 text-[var(--color-academic-muted)] group-hover:text-black group-hover:translate-x-0.5 transition-all" />
             </Link>
           )
         })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <section className="bg-white rounded-2xl border border-black/10 overflow-hidden">
-          <header className="px-5 py-4 border-b border-black/8 flex items-center justify-between">
+        <section className="bg-white rounded-xl border border-[var(--color-academic-border)] overflow-hidden">
+          <header className="px-5 py-3.5 border-b border-[var(--color-academic-border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Utensils className="w-4 h-4 text-black/45" />
-              <h2 className="font-extrabold text-black text-sm">Recent orders</h2>
+              <Utensils className="w-3.5 h-3.5 text-[var(--color-academic-muted)]" strokeWidth={1.75} />
+              <h2 className="font-semibold text-black text-[13px] tracking-tight">Recent orders</h2>
             </div>
-            <Link to={`/admin/${slug}/orders`} className="text-xs font-extrabold text-black/55 hover:text-black inline-flex items-center gap-1">
+            <Link to={`/admin/${slug}/orders`} className="text-[11px] font-semibold text-[var(--color-academic-muted)] hover:text-black inline-flex items-center gap-1">
               All <ArrowRight className="w-3 h-3" />
             </Link>
           </header>
@@ -208,13 +208,13 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        <section className="bg-white rounded-2xl border border-black/10 overflow-hidden">
-          <header className="px-5 py-4 border-b border-black/8 flex items-center justify-between">
+        <section className="bg-white rounded-xl border border-[var(--color-academic-border)] overflow-hidden">
+          <header className="px-5 py-3.5 border-b border-[var(--color-academic-border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-black/45" />
-              <h2 className="font-extrabold text-black text-sm">Top dishes</h2>
+              <Star className="w-3.5 h-3.5 text-[var(--color-academic-muted)]" strokeWidth={1.75} />
+              <h2 className="font-semibold text-black text-[13px] tracking-tight">Top dishes</h2>
             </div>
-            <Link to={`/admin/${slug}/menu`} className="text-xs font-extrabold text-black/55 hover:text-black inline-flex items-center gap-1">
+            <Link to={`/admin/${slug}/menu`} className="text-[11px] font-semibold text-[var(--color-academic-muted)] hover:text-black inline-flex items-center gap-1">
               Menu <ArrowRight className="w-3 h-3" />
             </Link>
           </header>
@@ -250,22 +250,23 @@ export default function AdminDashboard() {
 
 function StatCard({ icon: Icon, label, value, sub, accent }) {
   return (
-    <div className={`rounded-2xl p-5 border-2 ${
-      accent ? 'bg-black text-white border-black' : 'bg-white border-black/10'
+    <div className={`rounded-xl p-5 border ${
+      accent ? 'bg-black text-white border-black' : 'bg-white border-[var(--color-academic-border)]'
     }`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-        accent ? 'bg-white/15' : 'bg-[#F4F4F4]'
-      }`}>
-        <Icon className={`w-5 h-5 ${accent ? 'text-white' : 'text-black'}`} />
+      <div className="flex items-center justify-between">
+        <Icon
+          className={`w-4 h-4 ${accent ? 'text-white/65' : 'text-[var(--color-academic-muted)]'}`}
+          strokeWidth={1.75}
+        />
+        <p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${accent ? 'text-white/70' : 'text-[var(--color-academic-muted)]'}`}>
+          {label}
+        </p>
       </div>
-      <p className={`mt-4 text-2xl font-black tracking-tight ${accent ? 'text-white' : 'text-black'}`}>
+      <p className={`mt-4 text-[28px] font-semibold tracking-tight tabular-nums ${accent ? 'text-white' : 'text-black'}`}>
         {value}
       </p>
-      <p className={`text-[11px] font-bold mt-1 ${accent ? 'text-white/70' : 'text-black/55'}`}>
-        {label}
-      </p>
       {sub && (
-        <p className={`text-[10px] mt-0.5 font-semibold ${accent ? 'text-white/55' : 'text-black/40'}`}>
+        <p className={`text-[11px] mt-1 font-medium ${accent ? 'text-white/55' : 'text-[var(--color-academic-muted)]'}`}>
           {sub}
         </p>
       )}

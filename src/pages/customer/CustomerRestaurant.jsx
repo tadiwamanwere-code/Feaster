@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Star, MapPin, Clock, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Star, MapPin, Clock, Plus } from 'lucide-react'
 import { getRestaurantBySlug, getMenuItems } from '../../lib/services'
 import { useCart } from '../../context/CartContext'
 import OrderContextBanner from '../../components/customer/OrderContextBanner'
@@ -169,58 +169,146 @@ export default function CustomerRestaurant() {
             <h2 className="font-extrabold text-black mb-3 text-lg tracking-tight">{cat}</h2>
             <ul className="grid grid-cols-2 gap-3">
               {items.map(item => (
-                <li key={item.id}>
-                  <Link
-                    to={`/app/r/${restaurant.slug}/dish/${item.id}`}
-                    className="block bg-white rounded-2xl overflow-hidden border border-black/10 hover:border-black active:scale-[0.98] transition-all"
-                  >
-                    <div className="aspect-square bg-[#F4F4F4]">
-                      {item.image_url ? (
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
-                      )}
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-bold text-black truncate">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-[11px] text-black/55 mt-0.5 line-clamp-2 leading-tight">
-                          {item.description}
-                        </p>
-                      )}
-                      <div className="mt-2 text-sm font-extrabold text-black">
-                        ${Number(item.price).toFixed(2)}
-                      </div>
-                    </div>
-                  </Link>
-                </li>
+                <DishCard
+                  key={item.id}
+                  item={item}
+                  slug={restaurant.slug}
+                  onAdd={() => {
+                    if (cart.restaurantSlug !== restaurant.slug) {
+                      cart.setRestaurant(restaurant.slug, restaurant.id)
+                    }
+                    cart.addItem({
+                      id: item.id,
+                      name: item.name,
+                      price: Number(item.price),
+                      base_price: Number(item.price),
+                      size: 'regular',
+                      quantity: 1,
+                      notes: '',
+                      image_url: item.image_url,
+                    })
+                  }}
+                />
               ))}
             </ul>
           </section>
         ))}
       </div>
 
-      {/* Cart FAB */}
+      {/* Cart FAB — blue accent, slides up when first item added */}
       {cart.itemCount > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-30 px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-2 pointer-events-none">
+        <div className="fixed bottom-24 inset-x-0 z-30 px-5 pointer-events-none">
           <button
             onClick={() => navigate('/app/cart')}
-            className="max-w-md mx-auto w-full h-14 rounded-full bg-black text-white font-extrabold flex items-center justify-between gap-3 px-5 active:scale-[0.98] transition-transform shadow-2xl pointer-events-auto"
+            className="max-w-md mx-auto w-full h-14 rounded-full bg-[var(--color-cart)] text-white font-extrabold flex items-center justify-between gap-3 px-5 active:scale-[0.98] transition-transform pointer-events-auto"
+            style={{ boxShadow: '0 14px 32px -8px rgba(37, 99, 235, 0.55)' }}
           >
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-black text-xs font-extrabold">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-[var(--color-cart)] text-xs font-extrabold">
               {cart.itemCount}
             </span>
             <span className="flex-1 text-left">View cart</span>
-            <span>${cart.total.toFixed(2)}</span>
+            <span className="tabular-nums">${cart.total.toFixed(2)}</span>
           </button>
         </div>
       )}
     </div>
+  )
+}
+
+// ─── DishCard ─────────────────────────────────────────────────────
+// Card itself navigates to /dish/:id for size/notes customisation.
+// The "+" button in the corner adds a default unit straight to the cart,
+// no confirmation, with a tap-pop + a "+1" ghost particle that flies down.
+function DishCard({ item, slug, onAdd }) {
+  const btnRef = useRef(null)
+  const [particles, setParticles] = useState([])
+
+  const handleAdd = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    onAdd()
+
+    // Tap-pop on the button
+    if (btnRef.current) {
+      btnRef.current.classList.remove('tap-pop')
+      // force reflow so animation restarts
+      void btnRef.current.offsetWidth
+      btnRef.current.classList.add('tap-pop')
+    }
+
+    // Spawn a +1 ghost particle that flies toward the cart tab (bottom-center)
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      const startX = rect.left + rect.width / 2
+      const startY = rect.top + rect.height / 2
+      const endX = window.innerWidth / 2 - 60   // approx cart tab x
+      const endY = window.innerHeight - 40
+      const id = Date.now() + Math.random()
+      setParticles(p => [...p, { id, x: startX, y: startY, dx: endX - startX, dy: endY - startY }])
+      setTimeout(() => setParticles(p => p.filter(q => q.id !== id)), 650)
+    }
+  }
+
+  return (
+    <li className="relative">
+      <Link
+        to={`/app/r/${slug}/dish/${item.id}`}
+        className="block bg-white rounded-2xl overflow-hidden border border-black/10 hover:border-black active:scale-[0.98] transition-all"
+      >
+        <div className="aspect-square bg-[#F4F4F4] relative">
+          {item.image_url ? (
+            <img
+              src={item.image_url}
+              alt={item.name}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-4xl">🍽️</div>
+          )}
+
+          {/* Add button — stops Link nav, adds straight to cart */}
+          <button
+            ref={btnRef}
+            type="button"
+            onClick={handleAdd}
+            aria-label={`Add ${item.name} to cart`}
+            className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-[var(--color-cart)] text-white flex items-center justify-center active:scale-90 transition-transform z-10"
+            style={{ boxShadow: '0 6px 16px -2px rgba(37, 99, 235, 0.5)' }}
+          >
+            <Plus className="w-5 h-5" strokeWidth={3} />
+          </button>
+        </div>
+        <div className="p-3">
+          <h3 className="text-sm font-bold text-black truncate">{item.name}</h3>
+          {item.description && (
+            <p className="text-[11px] text-black/55 mt-0.5 line-clamp-2 leading-tight">
+              {item.description}
+            </p>
+          )}
+          <div className="mt-2 text-sm font-extrabold text-black">
+            ${Number(item.price).toFixed(2)}
+          </div>
+        </div>
+      </Link>
+
+      {/* Fly-to-cart ghost particles */}
+      {particles.map(p => (
+        <span
+          key={p.id}
+          className="fixed z-50 pointer-events-none w-7 h-7 rounded-full bg-[var(--color-cart)] text-white text-xs font-extrabold flex items-center justify-center fly-to-cart"
+          style={{
+            left: p.x - 14,
+            top:  p.y - 14,
+            // Tailwind arbitrary values can't take CSS vars dynamically — use inline style
+            ['--fly-end']: `translate(${p.dx}px, ${p.dy}px)`,
+          }}
+        >
+          +1
+        </span>
+      ))}
+    </li>
   )
 }
