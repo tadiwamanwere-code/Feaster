@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Loader, Check, AlertCircle } from 'lucide-react'
-import { addRestaurant, isSlugAvailable } from '../lib/services'
+import { signupRestaurant, isSlugAvailable } from '../lib/services'
 
 const CITIES = [
   'Harare', 'Bulawayo', 'Mutare', 'Gweru', 'Kwekwe',
@@ -79,7 +79,7 @@ export default function RestaurantSignup() {
 
     setSubmitting(true)
     try {
-      await addRestaurant({
+      await signupRestaurant({
         name: name.trim(),
         slug,
         city,

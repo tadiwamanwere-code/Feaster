@@ -329,6 +329,27 @@ export async function addRestaurant(restaurantData) {
   return data
 }
 
+// Public-facing self-signup. Calls a SECURITY DEFINER RPC that allows
+// anon role to create a restaurant (with rate limiting + validation),
+// since the owner has no account yet at this point.
+export async function signupRestaurant(restaurantData) {
+  const { data, error } = await supabase.rpc('signup_restaurant', {
+    p_name:             restaurantData.name,
+    p_slug:             restaurantData.slug,
+    p_city:             restaurantData.city,
+    p_cuisine_type:     restaurantData.cuisine_type,
+    p_whatsapp_number:  restaurantData.whatsapp_number,
+    p_kitchen_pin:      restaurantData.kitchen_pin,
+    p_opening_hours:    restaurantData.opening_hours ?? null,
+    p_payment_methods:  restaurantData.payment_methods ?? ['cash', 'ecocash'],
+    p_subscription_tier: restaurantData.subscription_tier ?? 'pro',
+    p_table_count:      restaurantData.table_count ?? 0,
+  })
+  if (error) throw error
+  invalidateCache('restaurant')
+  return data
+}
+
 export async function deleteRestaurant(id) {
   const { error } = await supabase
     .from('restaurants')
