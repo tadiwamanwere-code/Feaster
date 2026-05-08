@@ -30,7 +30,21 @@ export function AuthProvider({ children }) {
   }
 
   const logout = async () => {
-    await supabase.auth.signOut()
+    // Try server signOut, but don't get stuck if network/token is broken.
+    try {
+      await supabase.auth.signOut({ scope: 'local' })
+    } catch {
+      /* ignore — we'll force-clear below */
+    }
+    // Belt-and-braces: nuke any stale Supabase keys and force a clean reload.
+    try {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('sb-') || k.startsWith('supabase.auth.'))
+        .forEach(k => localStorage.removeItem(k))
+      sessionStorage.clear()
+    } catch { /* ignore */ }
+    setUser(null)
+    if (typeof window !== 'undefined') window.location.href = '/'
   }
 
   return (
