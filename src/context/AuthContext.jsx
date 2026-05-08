@@ -29,22 +29,26 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  const logout = async () => {
-    // Try server signOut, but don't get stuck if network/token is broken.
+  const logout = async (redirectTo = '/') => {
+    // Global sign-out invalidates the refresh token server-side too —
+    // local-only leaves a zombie session that auto-restores.
     try {
-      await supabase.auth.signOut({ scope: 'local' })
+      await supabase.auth.signOut({ scope: 'global' })
     } catch {
-      /* ignore — we'll force-clear below */
+      /* network can fail — we'll force-clear below */
     }
-    // Belt-and-braces: nuke any stale Supabase keys and force a clean reload.
+    // Belt-and-braces: nuke any stale Supabase keys + force a clean reload.
     try {
       Object.keys(localStorage)
-        .filter(k => k.startsWith('sb-') || k.startsWith('supabase.auth.'))
+        .filter(k => k.startsWith('sb-') || k.startsWith('supabase.auth.') || k.startsWith('supabase-auth-token'))
         .forEach(k => localStorage.removeItem(k))
       sessionStorage.clear()
     } catch { /* ignore */ }
     setUser(null)
-    if (typeof window !== 'undefined') window.location.href = '/'
+    if (typeof window !== 'undefined') {
+      // .replace prevents Back-button bouncing back into the auth-walled page
+      window.location.replace(redirectTo)
+    }
   }
 
   return (

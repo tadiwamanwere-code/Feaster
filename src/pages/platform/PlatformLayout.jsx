@@ -125,20 +125,43 @@ export default function PlatformLayout() {
   if (PLATFORM_ADMINS.length > 0 && !PLATFORM_ADMINS.includes(user.email)) {
     return (
       <div className="min-h-[100dvh] bg-white flex items-center justify-center px-6">
-        <div className="text-center max-w-sm">
+        <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-black text-black tracking-tight">Access denied</h1>
-          <p className="text-sm text-black/55 mt-2 font-medium">
+          <p className="text-sm text-black/55 mt-3 font-medium">
             This account doesn't have platform access.
           </p>
-          <button
-            onClick={logout}
-            className="mt-6 px-5 h-11 rounded-full bg-black text-white text-sm font-extrabold active:scale-95 transition-transform"
-          >
-            Sign out
-          </button>
+
+          {/* Show the signed-in email so they know what to whitelist */}
+          <div className="mt-5 bg-[#F4F4F4] rounded-xl px-4 py-3 inline-flex items-center gap-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-black/50">
+              Signed in as
+            </span>
+            <span className="text-sm font-bold text-black truncate max-w-[260px]">
+              {user.email}
+            </span>
+          </div>
+
+          <p className="text-xs text-black/55 mt-5 leading-relaxed">
+            Add this email to <code className="font-mono bg-[#F4F4F4] rounded px-1 py-0.5">VITE_PLATFORM_ADMINS</code> in your environment, redeploy, then sign back in.
+          </p>
+
+          <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
+            <button
+              onClick={() => logout('/system/login')}
+              className="px-5 h-11 rounded-full bg-black text-white text-sm font-extrabold active:scale-95 transition-transform"
+            >
+              Sign out
+            </button>
+            <Link
+              to="/"
+              className="px-5 h-11 rounded-full bg-white border-2 border-black/15 text-black text-sm font-extrabold flex items-center justify-center hover:border-black transition-colors"
+            >
+              Back to Feaster
+            </Link>
+          </div>
         </div>
       </div>
     )
